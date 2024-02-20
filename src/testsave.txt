@@ -1,0 +1,66 @@
+#Info
+
+p plain
+s sand
+m mountain
+f forest
+w water
+x wall
+
+#Map
+
+ppppppp
+wwwwwww
+ppppppp
+ppppppp
+sssssss
+mmmmmmm
+xxxxxxx
+ppppppp
+
+
+#Char
+O Player
+C testchar
+S (0,3)
+
+#Char
+O Player
+C Archer
+S (1,3)
+
+#Char
+O Player
+C Knight
+S (2,2)
+
+#Char
+O Player
+C Mage
+S (4,7)
+
+#Char
+O Player
+C Mage
+S (1,5)
+
+#Char
+O Player
+C Archer
+S (1,7)
+
+#Char
+O Player
+C Knight
+S (2,7)
+
+
+#Char
+O Computer
+C Knight
+S (3,3)
+
+#Char
+O Computer
+C Mage
+S (5,7)

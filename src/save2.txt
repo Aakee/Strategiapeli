@@ -1,0 +1,39 @@
+#info
+p plain
+w water
+k wall
+s sand
+
+
+#map
+
+ppppppppww
+pppwwwwppw
+pkpwwwpppw
+pkpswwwppp
+pksssppppw
+pppppppppw
+
+#char
+
+O player
+C archer
+s (2,0)
+
+#char
+
+O computer
+C archer
+s (1,0)
+
+#Char
+
+o computer
+c mage
+s (1,1)
+
+#char
+
+O player
+C Mage
+s (2,1)

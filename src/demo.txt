@@ -1,0 +1,55 @@
+#info
+
+p plain
+f forest
+w water
+x wall
+m mountain
+s sand
+
+#Map
+
+mmmmmmmm
+pppxxxmm
+pppssmmm
+ppsspppm
+pxxfwwpm
+fffwwppm
+ppffwwpp
+pppppppp
+
+#Char
+
+O Player
+C Assassin
+S (1,1)
+
+#Char
+
+O Player
+C Mage
+S (1,2)
+
+#Char
+
+O Player
+C Cleric
+S (0,1)
+
+#Char
+
+O Computer
+C Cleric
+S (6,6)
+
+#Char
+
+O Computer
+C Archer
+S (5,5)
+
+#Char
+
+O Computer
+C Knight
+S (5,7)

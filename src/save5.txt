@@ -1,0 +1,119 @@
+#Info
+
+p plain
+s sand
+m mountain
+f forest
+w water
+
+#Map
+
+mmmmmmmmmmmmmmm
+mpppppppmmmmmmm
+ppppppppppmmmmm
+pmppppppfpppmmm
+pmppsspppppppmm
+pppsssspppppppm
+ppsssssspppfppm
+pppsssssspppppm
+wwwpppssssppppm
+ppwwppppssspppm
+ppppwpppwsppppm
+ppfffppwwwppppm
+pppffffpwwwwppm
+ppffffpppwwpppm
+pfffffpppppppmm
+
+
+#Char
+O Player
+C Cleric
+S (13,1)
+
+#char
+O player
+C knight
+S (12,2)
+
+#Char
+O Player
+C archer
+S (11,1)
+
+#Char
+O Player
+C Mage
+S (13,2)
+
+#Char
+O Player
+C Assassin
+S (10,2)
+
+#Char
+O Player
+C Assassin
+S (12,4)
+
+#Char
+O Player
+C Mage
+S (10,3)
+
+#Char
+O Player
+C Valkyrie
+S (10,4)
+
+
+
+
+#Char
+O Computer
+C Cleric
+S (4,12)
+
+#Char
+O Computer
+C Cleric
+S (4,14)
+
+#Char
+O comPuter
+C archer
+S (2,13)
+
+#Char
+O Computer
+C mage
+S (4,13)
+
+#Char
+O Computer
+C Assassin
+S (5,11)
+
+#Char
+O Computer
+C knight
+S (3,11)
+
+#Char
+O Computer
+C assassin
+S (6,13)
+
+#Char
+O Computer
+C Knight
+S (5,14)
+
+#Char
+O Computer
+C Archer
+S (2,11)
+
+#Char
+O Computer
+C Valkyrie
+S (2,12)
