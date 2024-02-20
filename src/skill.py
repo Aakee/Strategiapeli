@@ -60,7 +60,7 @@ class Skill:
     can_pass_enemies = [GHOST, SNEAK]
     
     # Skills which can be activated the same way as attacks
-    active_skills = [HEAL, RAISEDEF, RAISERNG, FREE, CAPTURE, TRANSFER, EXECUTE, WISH]
+    active_skills = [HEAL, RAISEDEF, RAISERNG, WISH]
     
     # Passive skills which affect in combat
     passive_combat = [CAMOUFLAGE, BODYGUARD, MIRACLE, SNIPER]
