@@ -1,0 +1,6 @@
+# Ignore
+.venv/*
+src/__pycache__/
+
+# Exceptions
+!requirements.txt
