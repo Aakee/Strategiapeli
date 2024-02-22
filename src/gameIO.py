@@ -47,7 +47,7 @@ class IO:
         try:
             input = open(input_file, "r")
         except IOError as e:
-            raise CorruptedSaveFileException("Save file couldn't be opened!\nInfo: " + e)
+            raise CorruptedSaveFileException("Save file couldn't be opened!\nInfo: " + str(e))
         
         current_line = input.readline()
         keys = {}
