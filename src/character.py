@@ -2,6 +2,7 @@
 Instance of this class is an independent character
 '''
 
+import pathlib
 from stats import Stats
 from game_errors import IllegalMoveException
 from confirmwindow import ConfirmAttack
@@ -9,6 +10,10 @@ import random
 from skill import Skill
 import skill
 from tile import Tile
+
+
+BASE_PATH = pathlib.Path(__file__).parent
+
 
 class Character:
     
@@ -234,15 +239,15 @@ class Character:
         '''
         Method returns path to character's image.
         '''
-        path = './images/' + self.name.lower() + '_'
+        path = str(BASE_PATH / 'images' /  self.name.lower() )
         if self.carried:
-            path += 'carry_'
+            path += '_carry_'
         if self.ready:
-            path += 'moven.png'
+            path += '_moven.png'
         elif self.owner == self.game.get_human():
-            path += 'player.png'
+            path += '_player.png'
         elif self.owner == self.game.get_ai():
-            path += 'enemy.png'
+            path += '_enemy.png'
         else:
             raise KeyError("Error with player's controller!")
         return path
@@ -251,11 +256,11 @@ class Character:
         '''
         Same as get_path, but always returns path to coloured version of the picture (not the grey variant).
         '''
-        path = './images/' + self.name.lower() + '_'
+        path = str(BASE_PATH / 'images' / self.name.lower() )
         if self.owner == self.game.get_human():
-            path += 'player.png'
+            path += '_player.png'
         elif self.owner == self.game.get_ai():
-            path += 'enemy.png'
+            path += '_enemy.png'
         else:
             raise KeyError("Error with player's controller!")
         return path

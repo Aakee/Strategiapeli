@@ -1,7 +1,7 @@
 '''
 This file contains classes which are used to draw and update the map.
 '''
-
+import pathlib
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QGraphicsRectItem, QApplication, QMainWindow, QGraphicsScene, QAction, QFileDialog, QGridLayout
 from PyQt5.QtGui import QColor, QIcon, QPixmap
@@ -13,6 +13,8 @@ from game_errors import IllegalMoveException, CorruptedMapDataException,\
 from infowindow import Infowindow
 from action import Action
 import gameIO
+
+BASE_PATH = pathlib.Path(__file__).parent
 
 
 class GUI(QMainWindow):
@@ -39,7 +41,7 @@ class GUI(QMainWindow):
         self.players_turn = True
         self.game_ended = False
         app = QApplication(sys.argv)
-        self.setWindowIcon(QIcon('./images/testchar_player.png'))
+        self.setWindowIcon(QIcon(str( BASE_PATH / 'images' / 'testchar_player.png' )))
 
         
         self.active = None      # Currently active character in action-window
@@ -52,7 +54,7 @@ class GUI(QMainWindow):
         self.infownd = Infowindow(self)
         self.init_menu()
         
-        self.load_file("save.txt")
+        self.load_file(str(BASE_PATH / 'save.txt'))
         
         self.show()
     
