@@ -3,6 +3,7 @@ Instance of this class is an independent character
 '''
 
 import pathlib
+import configload
 from stats import Stats
 from game_errors import IllegalMoveException
 from confirmwindow import ConfirmAttack
@@ -10,9 +11,6 @@ import random
 from skill import Skill
 import skill
 from tile import Tile
-
-
-BASE_PATH = pathlib.Path(__file__).parent
 
 
 class Character:
@@ -239,31 +237,31 @@ class Character:
         '''
         Method returns path to character's image.
         '''
-        path = str(BASE_PATH / 'images' /  self.name.lower() )
+        filename = self.name.lower()
         if self.carried:
-            path += '_carry_'
+            filename += '_carry_'
         if self.ready:
-            path += '_moven.png'
+            filename += '_moven.png'
         elif self.owner == self.game.get_human():
-            path += '_player.png'
+            filename += '_player.png'
         elif self.owner == self.game.get_ai():
-            path += '_enemy.png'
+            filename += '_enemy.png'
         else:
             raise KeyError("Error with player's controller!")
-        return path
+        return configload.get_image(filename)
     
     def get_default_path(self):
         '''
         Same as get_path, but always returns path to coloured version of the picture (not the grey variant).
         '''
-        path = str(BASE_PATH / 'images' / self.name.lower() )
+        filename = self.name.lower()
         if self.owner == self.game.get_human():
-            path += '_player.png'
+            filename += '_player.png'
         elif self.owner == self.game.get_ai():
-            path += '_enemy.png'
+            filename += '_enemy.png'
         else:
             raise KeyError("Error with player's controller!")
-        return path
+        return configload.get_image(filename)
         
     def attack(self,attack,coordinates):
         '''

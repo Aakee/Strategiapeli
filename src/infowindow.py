@@ -5,9 +5,8 @@ import pathlib
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
+import configload
 from stats import Stats
-
-BASE_PATH = pathlib.Path(__file__).parent
 
 class Infowindow(QWidget):
     '''
@@ -23,7 +22,7 @@ class Infowindow(QWidget):
         
         self.game = parent.get_game()
         self.setWindowTitle('Info')
-        self.setWindowIcon(QIcon(str( BASE_PATH / 'images' / 'testchar_player.png' )))
+        self.setWindowIcon(QIcon(configload.get_image('testchar_player.png' )))
         if self.game != None:
             self.player = self.game.get_human()
             self.ai = self.game.get_ai()

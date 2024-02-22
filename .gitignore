@@ -1,6 +1,8 @@
 # Ignore
 .venv/*
 src/__pycache__/
+savedata/*
 
 # Exceptions
 !requirements.txt
+!save.txt

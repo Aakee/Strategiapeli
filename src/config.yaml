@@ -1,0 +1,4 @@
+directories:
+   source: ./src/
+   images: ./src/images/
+   savedata: ./savedata/

@@ -4,6 +4,7 @@ All of the functional methods are defined in Character class.
 '''
 
 import pathlib
+import configload
 from character import Character
 from stats import Stats
 import attack
@@ -191,5 +192,6 @@ class Valkyrie(Character):
         
     def get_path(self):
         if self.owner == self.game.get_ai() and self.is_ready():
-            return str( pathlib.Path(__file__).parent / 'images' / 'valkyrie_enemy_moven.png' )
+            return configload.get_image('valkyrie_enemy_moven.png')
         return Character.get_path(self)
+    

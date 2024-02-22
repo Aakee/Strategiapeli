@@ -7,14 +7,13 @@ from PyQt5.QtWidgets import QGraphicsRectItem, QApplication, QMainWindow, QGraph
 from PyQt5.QtGui import QColor, QIcon, QPixmap
 from PyQt5.QtCore import Qt, QCoreApplication
 import sys
+import configload
 from character import Character
 from game_errors import IllegalMoveException, CorruptedMapDataException,\
     CorruptedSaveFileException, ErrorWindow
 from infowindow import Infowindow
 from action import Action
 import gameIO
-
-BASE_PATH = pathlib.Path(__file__).parent
 
 
 class GUI(QMainWindow):
@@ -41,7 +40,7 @@ class GUI(QMainWindow):
         self.players_turn = True
         self.game_ended = False
         app = QApplication(sys.argv)
-        self.setWindowIcon(QIcon(str( BASE_PATH / 'images' / 'testchar_player.png' )))
+        self.setWindowIcon(QIcon(configload.get_image('testchar_player.png')))
 
         
         self.active = None      # Currently active character in action-window
@@ -54,7 +53,7 @@ class GUI(QMainWindow):
         self.infownd = Infowindow(self)
         self.init_menu()
         
-        self.load_file(str(BASE_PATH / 'save.txt'))
+        self.load_file(configload.get_filepath('savedata','save.txt'))
         
         self.show()
     
@@ -423,7 +422,7 @@ class GUI(QMainWindow):
                 if self.game.get_turns() < 0:
                     print("Haviat {} vuoron paasta. \n".format(abs(self.game.get_turns())))
                 
-                self.save_game("backup.txt") # Backup save each turn
+                self.save_game(configload.get_filepath('savedata','backup.txt')) # Backup save each turn
                 
                 self.end_turn() # To check if game ended during computer's turn
             
