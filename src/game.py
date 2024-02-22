@@ -2,19 +2,24 @@
 The source class of the game.
 Holds all vital information.
 '''
-import random
-
 class Game:
     
     def __init__(self):
-        self.gui = False
-        self.capture = True
-        self.mode = 'dm'
-        self.vip = False
+        self.gui        = False
+        self.capture    = True
+        self.mode       = 'dm'
+        self.vip        = False
         self.init_turns = False
-        self.turns = False
-        self.spawn = 0
-        
+        self.turns      = False
+        self.spawn      = 0
+
+        self.board      = None  # Board object
+        self.human      = None  # Human player
+        self.ai         = None  # Computer player
+
+        self.whose_turn = None
+
+    
     def set_board(self, board):
         self.board = board
         
@@ -59,7 +64,7 @@ class Game:
         
     def set_turns(self, turns):
         self.init_turns = turns
-        self.turns = turns
+        self.turns      = turns
         
     def next_turn(self,first_turn):
         if first_turn:
@@ -80,7 +85,3 @@ class Game:
         
     def get_spawn(self):
         return self.spawn
-    
-
-            
-        

@@ -8,9 +8,8 @@ from stats import Stats
 from game_errors import IllegalMoveException
 from confirmwindow import ConfirmAttack
 import random
-from skill import Skill
 import skill
-from tile import Tile
+import tile
 
 
 class Character:
@@ -224,7 +223,7 @@ class Character:
         has_transfer = False
         trasfer = None
         for skill1 in self.skills:
-            if skill1.get_type() == Skill.TRANSFER:
+            if skill1.get_type() == skill.Skill.TRANSFER:
                 has_transfer = True
                 transfer = skill1
         if has_transfer:
@@ -427,7 +426,7 @@ class Character:
                         elif type in priority:    # More value if target is a priority (duh)
                             value = value * 50
                             
-                        if tile_type == Tile.GOAL:
+                        if tile_type == tile.Tile.GOAL:
                             value = value * 100
                                 
                         if multip >= 5:
@@ -456,7 +455,7 @@ class Character:
                 
                 for skill in self.skills:
                     
-                    if skill.get_type() in Skill.active_skills:
+                    if skill.get_type() in skill.Skill.active_skills:
                         range = skill.get_range()
 
                         squares = self.define_attack_targets(square, range, skill.targets_enemy()) 
@@ -560,13 +559,13 @@ class Character:
         '''
         Resets character's stats every turn (self.ready, etc)
         '''
-        activating_skills = Skill.passive_beginning
+        activating_skills = skill.Skill.passive_beginning
         self.ready = False
         self.init_square = None
         self.reset_stats()
-        for skill in self.skills:
-            if skill.get_type() in activating_skills:
-                skill.use()
+        for sk in self.skills:
+            if sk.get_type() in activating_skills:
+                sk.use()
         
         
 

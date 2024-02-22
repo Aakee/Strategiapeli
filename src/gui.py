@@ -223,8 +223,7 @@ class GUI(QMainWindow):
         if fname[0] == '': #If canceled
             return
         try:
-            io = gameIO.IO()
-            new_game = io.load_game(fname[0])
+            new_game = gameIO.load_game(fname[0])
             if self.game != None:
                 self.empty()
                 
@@ -282,8 +281,7 @@ class GUI(QMainWindow):
         try:
             if arg[0] == False:
                 fname = QFileDialog.getSaveFileName(self, 'Save file', '', "Text files (*.txt)")
-            io = gameIO.IO()
-            io.save_game(self.game, fname[0])
+            gameIO.save_game(self.game, fname[0])
             self.statusBar().showMessage('Tallentaminen onnistui!')
         except CorruptedSaveFileException:
             self.statusBar().showMessage('Tallentaminen ei onnistunut.')
