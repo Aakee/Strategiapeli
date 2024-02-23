@@ -1,5 +1,4 @@
 from game_errors import IllegalMoveException
-#from tile import *
 import tile
 
 class Board:
