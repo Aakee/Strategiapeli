@@ -36,7 +36,7 @@ def load_game(input_file):
     # Parameters for the board; this will be changed in the future
     width = 0
     height = 0
-    board = Board(game)
+    board = Board()
     game.set_board(board)
     
     # Player objects
@@ -79,7 +79,7 @@ def load_game(input_file):
                     if not info_ready and current == "map":
                         raise CorruptedSaveFileException("Map info and data must be first!")
                     map_ready = True
-                    board.set_board(map, height, width)
+                    board.set_board(map)
                     current = "char"
                     
 
@@ -206,7 +206,8 @@ def load_game(input_file):
     
         input.close()
         
-    except Exception as e: # Basically any kind of error should raise the eception
+    #except Exception as e: # Basically any kind of error should raise the eception
+    except IndexError as e:
         raise CorruptedSaveFileException(e)
         
     if not info_ready or not map_ready:
