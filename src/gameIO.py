@@ -1,5 +1,3 @@
-
-
 import board
 from tile import *
 from game_errors import *
@@ -11,40 +9,48 @@ from board import Board
 from game import Game
 
 '''
-Functions to manage writing from and reading to files.
+Functions to manage loading a game from and saving a game to file.
 '''
     
 def load_game(input_file):
     '''
-    Method creates and returns a game from the information from file
-    input_file.
-    @param input_file: Name of the file class tries to load game from
-    @return: a Game object
+    Function loads and returns a game from the information from file input_file.
+    @param input_file: Path to the save file as a string
+    @returns: a Game object
     '''
-    
+    # The resulting Game object
+    game = Game()
+
+    # 2D list where the game information is loaded to
     map = []
     
-    game = Game()
-    
-    info_ready = False
-    map_ready = False
-    turns_set = False
-    spawn_set = False
-    current = None
-    idx = 0
+    # Flags to see if certain sections and attributes have already been loaded
+    info_ready  = False
+    map_ready   = False
+    turns_set   = False
+    spawn_set   = False
 
+    # Current section in the file
+    current     = None
+
+    # Parameters for the board; this will be changed in the future
     width = 0
     height = 0
     board = Board(game)
     game.set_board(board)
     
+    # Player objects
     game.set_human(human.Human(game))
     game.set_ai(ai.AI(game))
-        
+    
+    # Open save file
     try:
         input = open(input_file, "r")
     except IOError as e:
         raise CorruptedSaveFileException("Save file couldn't be opened!\nInfo: " + str(e))
+    
+
+    # Loop through the lines and read data
     
     current_line = input.readline()
     keys = {}
@@ -52,7 +58,6 @@ def load_game(input_file):
     try:
         while current_line != "":
             pass_this = False
-            idx += 1
             
             if current_line.strip() == "":
                 pass
@@ -148,8 +153,6 @@ def load_game(input_file):
                 #while owner_set == None or class_set == None or tile_set == None:
                 while True:
                     
-                    idx += 1
-                    
                     if current_line == "" or current_line[0] == "#":
                         pass_this = True
                         break
@@ -203,15 +206,13 @@ def load_game(input_file):
     
         input.close()
         
-    #except Exception as e: # Basically any kind of error should raise the eception
-    except IndexError as e:
+    except Exception as e: # Basically any kind of error should raise the eception
         raise CorruptedSaveFileException(e)
         
     if not info_ready or not map_ready:
         raise CorruptedSaveFileException("Save file was faulty!\nEither #Info or #Map missing")
     
-    
-    
+
     return game
             
         
