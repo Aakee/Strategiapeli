@@ -21,7 +21,7 @@ class Tile:
         self.passable = True    # List of skills char has to have to pass; True if always passable, False if never passable
         self.endable = True     # List of skills char has to have to end on this tile; True if endable regardless of skills, False if never endable
         self.steps_taken = 1    # Basic amount steps needed to pass; can be altered by char skills
-        self.type = None
+        self.terrain = None
         self.combat = {Stats.ATTACK: 0, Stats.DEFENSE: 0, Stats.MAGIC: 0, Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0}
         self.set_combat()
         self.color = QColor(255,255,255) # Color for this type of tile; used by GUI
@@ -33,8 +33,8 @@ class Tile:
     def get_object(self):
         return self.object
     
-    def get_type(self):
-        return self.type
+    def get_terrain(self):
+        return self.terrain
     
     def get_color(self):
         return self.color
@@ -174,7 +174,7 @@ class Plain(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Terrain.PLAIN
+        self.terrain = Terrain.PLAIN
         self.color = QColor(243,243,215)
     
     def define_steps_left(self,char,steps):
@@ -196,7 +196,7 @@ class Sand(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 2
-        self.type = Terrain.SAND
+        self.terrain = Terrain.SAND
         self.color = QColor(255,237,135)
         self.color2 = QColor(129,179,254)
         
@@ -229,7 +229,7 @@ class Wall(Tile):
         self.passable = [SkillType.GHOST]
         self.endable = False
         self.steps_taken = 1
-        self.type = Terrain.WALL
+        self.terrain = Terrain.WALL
         self.color = QColor(0,0,0)
         
     def define_steps_left(self,char,steps):
@@ -255,7 +255,7 @@ class Forest(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1.5
-        self.type = Terrain.FOREST
+        self.terrain = Terrain.FOREST
         self.color = QColor(17,197,8)
         self.color2 = QColor(6,198,155)
         
@@ -285,7 +285,7 @@ class Mountain(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Terrain.MOUNTAIN
+        self.terrain = Terrain.MOUNTAIN
         self.color = QColor(172,172,172)
         self.color2 = QColor(174,155,234)
         
@@ -313,7 +313,7 @@ class Water(Tile):
         self.passable = [SkillType.LEVITATE]
         self.endable = [SkillType.LEVITATE]
         self.steps_taken = 1
-        self.type = Terrain.WATER
+        self.terrain = Terrain.WATER
         self.color = QColor(0,13,255)
         self.color2 = QColor(152,3,252)
         
@@ -337,7 +337,7 @@ class Snow(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1.5
-        self.type = Terrain.SNOW
+        self.terrain = Terrain.SNOW
         self.color = QColor(249,249,249)
         self.color2 = QColor(239,209,239)
         
@@ -368,7 +368,7 @@ class Wood(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Terrain.WOOD
+        self.terrain = Terrain.WOOD
         self.color = QColor(120,74,50)
         self.color2 = QColor(207,105,167)
     
@@ -390,7 +390,7 @@ class Goal(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Terrain.GOAL
+        self.terrain = Terrain.GOAL
         self.color = QColor(255,210,74)
         self.color2 = QColor(152,3,252)
         

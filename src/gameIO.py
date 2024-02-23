@@ -308,7 +308,7 @@ def save_game(game, filename):
         for y in range(board.get_height()):
             for x in range(board.get_width()):
                 tile = board.get_tile((x,y))
-                name = tile.get_type()
+                name = tile.get_terrain().value
                 if name not in tiles:
                     tiles[name] = keys[i]
                     i += 1
@@ -325,7 +325,7 @@ def save_game(game, filename):
             string = ""
             for x in range(board.get_width()):
                 tile = board.get_tile((x,y))
-                type = tile.get_type()
+                type = tile.get_terrain().value
                 string += tiles[type]
             string += "\n"
             tiedosto.write(string)

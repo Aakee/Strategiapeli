@@ -403,7 +403,7 @@ class Character:
                             
                         type = target.get_type()
                         tile = self.board.get_tile(self.get_square())
-                        tile_type = tile.get_type()
+                        tile_type = tile.get_terrain()
 
                         if prob_dmg >= target_hp and type in priority:
                             value = value * 100
