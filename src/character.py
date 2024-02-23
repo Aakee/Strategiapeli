@@ -9,7 +9,6 @@ from confirmwindow import ConfirmAttack
 import random
 import skill
 import attack
-from skill import *
 
 
 class Character:
@@ -624,7 +623,7 @@ class TestChar(Character):
         self.init_stats = dict(self.stats)
         self.range = 6
         self.init_range = self.range
-        self.skills = [Ghost(self), RaiseDef(self)]
+        self.skills = [skill.Ghost(self), skill.RaiseDef(self)]
             
         self.attacks.append(attack.Melee((self, (1,1),1, 100,'Swordstrike', 'Attack with your sword. Physical attack.')))
         self.attacks.append(attack.Melee((self, (1,2),0.5, 100,'Javelin', 'Throw your javelin from afar. Physical attack.')))
@@ -652,7 +651,7 @@ class Knight(Character):
         self.range = 3
         self.init_stats = dict(self.stats)
         self.init_range = self.range
-        self.skills = [RaiseDef(self),Bodyguard(self)]
+        self.skills = [skill.RaiseDef(self), skill.Bodyguard(self)]
             
         self.attacks.append(attack.Melee((self, (1,1),1, 100,'Swordstrike', 'Attack with your sword.')))
         self.attacks.append(attack.Melee((self, (1,1),1.5, 75,'Axe', 'Attack with your axe')))
@@ -680,7 +679,7 @@ class Archer(Character):
         self.range = 4
         self.init_stats = dict(self.stats)
         self.init_range = self.range
-        self.skills = [Sniper(self)]
+        self.skills = [skill.Sniper(self)]
 
         self.attacks.append(attack.Melee((self, (1,2),1.5, 100,'Bow', 'Shoot with your bow. Range: 2.')))
         self.attacks.append(attack.Melee((self, (1,3),1, 80,'Longbow', 'Weaker and worse accuracy than the bow, but better range. Range: 3.')))
@@ -705,7 +704,7 @@ class Mage(Character):
         self.range = 3
         self.init_stats = dict(self.stats)
         self.init_range = self.range
-        self.skills = [Camouflage(self)]
+        self.skills = [skill.Camouflage(self)]
             
         self.attacks.append(attack.Magic((self, (1,2),1.5, 95,'Fire', 'Cast a somewhat powerful fire. Range: 2.')))
         self.attacks.append(attack.Magic((self, (1,4),0.5, 90,'Thunder', 'Cast a weak thunder. Range: 4.')))
@@ -730,7 +729,7 @@ class Cleric(Character):
         self.range = 3
         self.init_stats = dict(self.stats)
         self.init_range = self.range
-        self.skills = [Heal(self),Camouflage(self),Rest(self),RaiseRng(self)]
+        self.skills = [skill.Heal(self), skill.Camouflage(self), skill.Rest(self), skill.RaiseRng(self)]
             
         self.attacks.append(attack.Magic((self, (1,2),0.4, 100,'Wind', 'Cast a somewhat weak wind to attack. Range: 2.')))
         self.attacks.append(attack.Melee((self, (1,1), 1, 100, 'Knife', 'Attack an enemy with a quick slash from your knife.')))
@@ -755,7 +754,7 @@ class Assassin(Character):
         self.range = 4
         self.init_stats = dict(self.stats)
         self.init_range = self.range
-        self.skills = [Camouflage(self), Sneak(self)]
+        self.skills = [skill.Camouflage(self), skill.Sneak(self)]
             
         self.attacks.append(attack.Melee((self, (1,1), 1.3, 100, 'Dagger', 'Attack an enemy with your dagger.')))
         self.attacks.append(attack.Melee((self, (1,2), 0.8, 95, 'Throwing knife', 'Throw an enemy with your dagger.')))
@@ -780,7 +779,7 @@ class Valkyrie(Character):
         self.range = 5
         self.init_stats = dict(self.stats)
         self.init_range = self.range
-        self.skills = [Levitate(self),Rest(self),Wish(self)]
+        self.skills = [skill.Levitate(self), skill.Rest(self), skill.Wish(self)]
             
         self.attacks.append(attack.Melee((self, (1,1), 1.2, 100, 'Lance', 'Hit an enemy with your lance.')))
         self.attacks.append(attack.Magic((self, (1,2), 1.3, 90, 'Stormwind', 'Cast a somewhat powerful wind magic. Range: 2')))
