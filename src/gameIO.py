@@ -3,8 +3,7 @@ from tile import *
 from game_errors import *
 import human
 import ai
-import CharacterData
-from character import Character
+import character
 from board import Board
 from game import Game
 
@@ -253,21 +252,21 @@ def new_char(owner,type,tile,hp, game):
     try:
         type = type.strip()
         if type == "testchar":
-            char = CharacterData.TestChar(game,owner)
+            char = character.TestChar(game,owner)
         elif type == "knight":
-            char = CharacterData.Knight(game,owner)
+            char = character.Knight(game,owner)
         elif type == "archer":
-            char = CharacterData.Archer(game,owner)
+            char = character.Archer(game,owner)
         elif type == "mage":
-            char = CharacterData.Mage(game,owner)
+            char = character.Mage(game,owner)
         elif type == "cleric":
-            char = CharacterData.Cleric(game,owner)
+            char = character.Cleric(game,owner)
         elif type == "assassin":
-            char = CharacterData.Assassin(game,owner)
+            char = character.Assassin(game,owner)
         elif type == "valkyrie":
-            char = CharacterData.Valkyrie(game,owner)
+            char = character.Valkyrie(game,owner)
         else:
-            char = CharacterData.TestChar(game,owner)
+            char = character.TestChar(game,owner)
             
         game.get_board().set_object(tile, char)
         if hp != None:

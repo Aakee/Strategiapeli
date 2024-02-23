@@ -1,5 +1,4 @@
 from player import Player
-from CharacterData import *
 import random
 
 class AI(Player):
