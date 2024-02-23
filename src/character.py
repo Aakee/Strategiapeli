@@ -453,20 +453,20 @@ class Character:
             
             if len(self.skills) > 0:
                 
-                for skill in self.skills:
+                for sk in self.skills:
                     
-                    if skill.get_type() in skill.Skill.active_skills:
-                        range = skill.get_range()
+                    if sk.get_type() in skill.Skill.active_skills:
+                        range = sk.get_range()
 
-                        squares = self.define_attack_targets(square, range, skill.targets_enemy()) 
+                        squares = self.define_attack_targets(square, range, sk.targets_enemy()) 
                         for skill_square in squares:
                             
                             value = init_value
-                            multip2 = skill.get_value(skill_square)                    
+                            multip2 = sk.get_value(skill_square)                    
                             value = value * multip * multip2
                             value = round(value)
                                 
-                            line = [square,skill,skill_square,value]
+                            line = [square,sk,skill_square,value]
                             possibilities.append(line)
                                 
                             if value > 0:
