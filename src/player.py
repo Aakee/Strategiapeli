@@ -1,12 +1,7 @@
-from tile import Tile
-from character import Character
-
 class Player:
     
-    def __init__(self, game):
-        self.game = game
+    def __init__(self):
         self.characters = []
-        self.backpack = {}
         self.alive = True
         self.won = False    # Set to true if won by some other condition than killing all enemies
         self.lost = False   # Set to true if lost by some other condition than getting all characters killed
@@ -62,38 +57,37 @@ class Player:
         - Only vip can seize goals
         '''
         self.vip = True
-        self.game.set_vip()
+        #self.game.set_vip()
     
     def new_turn(self):
         '''
         Initialized all characters for new turn.
         Also on first turn adds skills to eveyone if it is a vip game.
         '''
-        if self.game.is_vip() and self.first:
-            for char in self.characters:
-                char.add_vip()
+        #if self.game.is_vip() and self.first:
+        #    for char in self.characters:
+        #        char.add_vip()
              
         for char in self.characters:
             char.new_turn()
-            tile = self.game.get_board().get_tile(char.get_square())
-            if tile.get_type() == Tile.GOAL and self == self.game.get_human() and not self.game.is_vip():
-                self.won = True
-            elif tile.get_type() == Tile.GOAL and self == self.game.get_human():
-                if char.get_type() == Character.VIP:
-                    self.won = True
-                elif char.get_carrying() != None:
-                    if char.get_carrying().get_type() == Character.VIP:
-                        self.won = True
+            #tile = self.game.get_board().get_tile(char.get_square())
+            #if tile.get_type() == Tile.GOAL and self == self.game.get_human() and not self.game.is_vip():
+            #    self.won = True
+            #elif tile.get_type() == Tile.GOAL and self == self.game.get_human():
+            #    if char.get_type() == Character.VIP:
+            #        self.won = True
+            #    elif char.get_carrying() != None:
+            #        if char.get_carrying().get_type() == Character.VIP:
+            #            self.won = True
                   
-        if self.game.get_init_turns():
-            if (self == self.game.get_human() and self.game.get_init_turns() > 0) or (self == self.game.get_ai() and self.game.get_init_turns() < 0):
-                self.game.next_turn(self.first and self == self.game.get_human())
-                if self.game.get_turns() == 0:
-                    self.won = True
-            
-                
-                    
+        #if self.game.get_init_turns():
+        #    if (self == self.game.get_human() and self.game.get_init_turns() > 0) or (self == self.game.get_ai() and self.game.get_init_turns() < 0):
+        #        self.game.next_turn(self.first and self == self.game.get_human())
+        #        if self.game.get_turns() == 0:
+        #            self.won = True
+
         self.first = False
+
         
     def end_turn(self):
         '''
@@ -109,4 +103,4 @@ class Player:
         to draw original sprites to map instead of grey.
         '''
         for char in self.characters:
-            char.set_not_ready()    
+            char.set_not_ready()

@@ -40,8 +40,8 @@ def load_game(input_file):
     game.set_board(board)
     
     # Player objects
-    game.set_human(human.Human(game))
-    game.set_ai(ai.AI(game))
+    game.set_human(human.Human())
+    game.set_ai(ai.AI())
     
     # Open save file
     try:

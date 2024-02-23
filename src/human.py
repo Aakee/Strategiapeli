@@ -2,8 +2,8 @@ from player import Player
 
 class Human(Player):
     
-    def __init__(self,game):
-        Player.__init__(self, game)
+    def __init__(self):
+        Player.__init__(self)
         
     '''    
     def make_turn(self):

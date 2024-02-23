@@ -404,7 +404,6 @@ class GUI(QMainWindow):
             else: # If computer has moven all their characters
                 self.players_turn = True
                 self.game.get_ai().set_all_not_ready()
-                self.game.get_ai().spawn_enemy()
                 print("\n\nPelaajan vuoro!\n")
                     
                 self.game.get_human().new_turn()
