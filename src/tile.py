@@ -5,25 +5,15 @@ different properties.
 
 from game_errors import IllegalMoveException
 from skill import Skill
-from stats import Stats
+from game_enums import Stats
 from PyQt5.QtGui import QColor
+from game_enums import Terrain
 
 
 class Tile:
     '''
     Basic class for all tiles.
     '''
-    
-    PLAIN = "plain"
-    SAND = "sand"
-    WALL = "wall"
-    FOREST = "forest"
-    MOUNTAIN = "mountain"
-    WATER = "water"
-    GOAL = "goal"
-    SNOW = "snow"
-    WOOD = "wood"
-    
     
     def __init__(self,game):
         self.game = game
@@ -184,7 +174,7 @@ class Plain(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Tile.PLAIN
+        self.type = Terrain.PLAIN
         self.color = QColor(243,243,215)
     
     def define_steps_left(self,char,steps):
@@ -206,7 +196,7 @@ class Sand(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 2
-        self.type = Tile.SAND
+        self.type = Terrain.SAND
         self.color = QColor(255,237,135)
         self.color2 = QColor(129,179,254)
         
@@ -239,7 +229,7 @@ class Wall(Tile):
         self.passable = [Skill.GHOST]
         self.endable = False
         self.steps_taken = 1
-        self.type = Tile.WALL
+        self.type = Terrain.WALL
         self.color = QColor(0,0,0)
         
     def define_steps_left(self,char,steps):
@@ -265,7 +255,7 @@ class Forest(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1.5
-        self.type = Tile.FOREST
+        self.type = Terrain.FOREST
         self.color = QColor(17,197,8)
         self.color2 = QColor(6,198,155)
         
@@ -295,7 +285,7 @@ class Mountain(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Tile.MOUNTAIN
+        self.type = Terrain.MOUNTAIN
         self.color = QColor(172,172,172)
         self.color2 = QColor(174,155,234)
         
@@ -323,7 +313,7 @@ class Water(Tile):
         self.passable = [Skill.LEVITATE]
         self.endable = [Skill.LEVITATE]
         self.steps_taken = 1
-        self.type = Tile.WATER
+        self.type = Terrain.WATER
         self.color = QColor(0,13,255)
         self.color2 = QColor(152,3,252)
         
@@ -347,7 +337,7 @@ class Snow(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1.5
-        self.type = Tile.SNOW
+        self.type = Terrain.SNOW
         self.color = QColor(249,249,249)
         self.color2 = QColor(239,209,239)
         
@@ -378,7 +368,7 @@ class Wood(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Tile.WOOD
+        self.type = Terrain.WOOD
         self.color = QColor(120,74,50)
         self.color2 = QColor(207,105,167)
     
@@ -400,7 +390,7 @@ class Goal(Tile):
         self.passable = True
         self.endable = True
         self.steps_taken = 1
-        self.type = Tile.GOAL
+        self.type = Terrain.GOAL
         self.color = QColor(255,210,74)
         self.color2 = QColor(152,3,252)
         

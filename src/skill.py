@@ -1,7 +1,7 @@
-from stats import Stats
+from game_enums import Stats
 from game_errors import IllegalMoveException
 from confirmwindow import ConfirmSkill
-import character
+from game_enums import CharacterClass
 
 '''
 An assistant class which stores all skills there are in the game.
@@ -345,7 +345,7 @@ class Camouflage(Skill):
             return accuracy
         
         type = attacking.get_type()
-        if type == character.Character.ARCHER:
+        if type == CharacterClass.ARCHER:
             accuracy -= 15
             
         return accuracy
@@ -393,7 +393,7 @@ class Bodyguard(Skill):
             return accuracy
         
         type = defending.get_type()
-        if type == character.Character.ASSASSIN:
+        if type == CharacterClass.ASSASSIN:
             accuracy = accuracy * 2
             
         return accuracy
@@ -403,7 +403,7 @@ class Bodyguard(Skill):
             return damage
         
         type = defending.get_type()
-        if type == character.Character.ASSASSIN:
+        if type == CharacterClass.ASSASSIN:
             damage = damage * 1.5
             
         return damage       
@@ -453,7 +453,7 @@ class Sniper(Skill):
         return accuracy
     
     def define_damage(self,damage,attacking,defending):
-        if defending.get_type() == character.Character.VALKYRIE:
+        if defending.get_type() == CharacterClass.VALKYRIE:
             return damage * 2.5
         return damage
     

@@ -1,33 +1,20 @@
 '''
 Instance of this class is an independent character
 '''
-
+from enum import Enum
 import configload
-from stats import Stats
+from game_enums import Stats
 from game_errors import IllegalMoveException
 from confirmwindow import ConfirmAttack
 import random
 import skill
 import attack
-
+from game_enums import CharacterClass
 
 class Character:
-    
     '''
     Basic class for all characters.
     '''
-    
-    TESTCHAR = 0
-    KNIGHT = 1
-    ARCHER = 2
-    MAGE = 3
-    CLERIC = 4
-    ASSASSIN = 5
-    VIP = 6
-    STUCK_VIP = 7
-    VALKYRIE = 8
-    
-
     def __init__(self, game, owner):
         self.game = game
         self.board = game.get_board()
@@ -392,7 +379,7 @@ class Character:
         @return: list in format [square, action, target_square, value]
         '''
         possibilities = []
-        priority = [Character.CLERIC, Character.VIP] # Main priority classes for ai (healers, etc)
+        priority = [CharacterClass.CLERIC, CharacterClass.VIP] # Main priority classes for ai (healers, etc)
         legal_squares = self.board.legal_squares(self)
         init_value = 0.5
 
@@ -409,7 +396,7 @@ class Character:
                 for attack_square in squares:
                     value = init_value
                     target = self.board.get_piece(attack_square)
-                    if target != None and target.get_type() != Character.STUCK_VIP:
+                    if target != None:
                         
                         prob_dmg = attack.calculate_probable_damage(target)
                         target_hp = target.get_hp()
@@ -425,9 +412,6 @@ class Character:
                         elif type in priority:    # More value if target is a priority (duh)
                             value = value * 50
                             
-                        if tile_type == tile.Tile.GOAL:
-                            value = value * 100
-                                
                         if multip >= 5:
                             value = value * 20
                             
@@ -526,7 +510,7 @@ class Character:
                                                 
         if possible_damage == 0:
             value = value * 5
-            if self.type == Character.CLERIC or self.type == Character.VIP:
+            if self.type == CharacterClass.CLERIC:
                 value = value * 4
                 
         if 0 < possible_damage < (self.hp / 2):
@@ -535,10 +519,10 @@ class Character:
             value = value * 0.7
         if possible_damage >= self.hp:
             value = value * 0.4
-            if self.type == Character.CLERIC or self.type == Character.VIP:
+            if self.type == CharacterClass.CLERIC:
                 value = value * 0.2
             
-        if possible_damage == 0 and self.get_type() != Character.CLERIC and self.get_type() != Character.VIP:
+        if possible_damage == 0 and self.get_type() != CharacterClass.CLERIC:
             enemy_squares = []
             subvalue = 1
             for char in self.game.get_human().get_characters():
@@ -611,7 +595,7 @@ class TestChar(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "TestChar"
-        self.type = Character.TESTCHAR        
+        self.type = CharacterClass.TESTCHAR      
         self.maxhp = 25
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 15
@@ -639,7 +623,7 @@ class Knight(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "Knight"
-        self.type = Character.KNIGHT        
+        self.type = CharacterClass.KNIGHT        
         self.maxhp = 25
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 17
@@ -667,7 +651,7 @@ class Archer(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "Archer"
-        self.type = Character.ARCHER       
+        self.type = CharacterClass.ARCHER     
         self.maxhp = 20
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 13
@@ -692,7 +676,7 @@ class Mage(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "Mage"
-        self.type = Character.MAGE      
+        self.type = CharacterClass.MAGE  
         self.maxhp = 20
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 5
@@ -717,7 +701,7 @@ class Cleric(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "Cleric"
-        self.type = Character.CLERIC      
+        self.type = CharacterClass.CLERIC   
         self.maxhp = 20
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 5
@@ -742,7 +726,7 @@ class Assassin(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "Assassin"
-        self.type = Character.ASSASSIN      
+        self.type = CharacterClass.ASSASSIN  
         self.maxhp = 17
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 15
@@ -767,7 +751,7 @@ class Valkyrie(Character):
     def __init__(self, game, owner):
         Character.__init__(self,game, owner)
         self.name = "Valkyrie"
-        self.type = Character.VALKYRIE      
+        self.type = CharacterClass.VALKYRIE
         self.maxhp = 18
         self.hp = self.maxhp
         self.stats[Stats.ATTACK] = 12

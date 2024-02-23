@@ -576,18 +576,15 @@ class Square(QGraphicsRectItem):
             if self.tile.get_object() != None:
                 char = self.tile.get_object()
                 
-                if char.get_owner() == self.game.get_human() and not char.is_ready() and not char.get_type() == Character.STUCK_VIP:
+                if char.get_owner() == self.game.get_human() and not char.is_ready():
                     self.gui.set_active(char)
                     legal_squares = char.get_legal_squares()
                     self.gui.recolor_map(legal_squares)
                     self.gui.set_moving(char)
                     self.gui.statusBar().showMessage('Valitse ruutu.')
                     
-                elif char.get_owner() == self.game.get_human() and not char.get_type() == Character.STUCK_VIP:
+                elif char.get_owner() == self.game.get_human():
                     self.gui.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
-                    
-                elif char.get_type() == Character.STUCK_VIP:
-                    self.gui.statusBar().showMessage('Et voi liikuttaa hahmoa!')
                     
             else:
                 self.gui.statusBar().showMessage('Valitse hahmo.')

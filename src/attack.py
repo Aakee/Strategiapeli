@@ -1,14 +1,11 @@
 import random
-from stats import Stats
+from game_enums import Stats
 from skill import Skill
 
 class Attack:
     '''
     An assistant class used by characters to store info of their attacks and to determine their damage output.
     '''
-    MELEE = 1
-    MAGIC = 2
-    
     
     def __init__(self,data):
         '''
@@ -150,7 +147,6 @@ class Melee(Attack):
     '''
     def __init__(self,data):
         Attack.__init__(self, data)
-        self.type = Attack.MELEE
         self.attack_type = Stats.ATTACK
         self.defense_type = Stats.DEFENSE
         
@@ -161,7 +157,6 @@ class Magic(Attack):
     '''
     def __init__(self,data):
         Attack.__init__(self, data)
-        self.type = Attack.MAGIC
         self.attack_type = Stats.MAGIC
         self.defense_type = Stats.RESISTANCE
         

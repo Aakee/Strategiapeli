@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 import configload
-from stats import Stats
+from game_enums import Stats
 
 class Infowindow(QWidget):
     '''
