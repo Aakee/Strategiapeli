@@ -1,7 +1,7 @@
 from game_enums import Stats
 from game_errors import IllegalMoveException
 from confirmwindow import ConfirmSkill
-from game_enums import CharacterClass
+from game_enums import CharacterClass, SkillType
 
 '''
 An assistant class which stores all skills there are in the game.
@@ -11,45 +11,6 @@ An assistant class which stores all skills there are in the game.
 class Skill:
     
     '''
-    Skills which affect moving.
-    '''
-    
-    LEVITATE = 1    # Character can levitate for instance over gaps
-    GHOST = 2       # Character can pass walls and enemy players (but not land on them)
-    SNEAK = 3       # Character can pass enemy players
-    
-    
-    
-    '''
-    Skills which affect in combat.
-    '''
-    
-    CAMOUFLAGE = 11
-    BODYGUARD = 12
-    MIRACLE = 13
-    SNIPER = 14
-    
-    
-    '''
-    Passive skills which affect outside of combat
-    '''
-    
-    REST = 21       # Character gains HP at the start of each turn.
-    
-    
-    
-    '''
-    Active skills which affect outside of combat (must be activated)
-    '''
-    
-    HEAL = 31       # Character can heal other characters (and themselves).
-    RAISEDEF = 33   # Character raises defensive stats for nearby allies until start of next turn
-    RAISERNG = 34   # Character raises range for nearby allies until start of next turn
-    WISH = 39       # Another character can move second time
-    
-    
-    
-    '''
     Lists of different types of skills.
     (Not generally necessary, but makes other methods in the game cleaner)
     If other methods would like to check if a character can pass an enemy player, for example, tehy compare
@@ -57,16 +18,16 @@ class Skill:
     '''
     
     # Skills with which characters can pass enemy players
-    can_pass_enemies = [GHOST, SNEAK]
+    can_pass_enemies = [SkillType.GHOST, SkillType.SNEAK]
     
     # Skills which can be activated the same way as attacks
-    active_skills = [HEAL, RAISEDEF, RAISERNG, WISH]
+    active_skills = [SkillType.HEAL, SkillType.RAISEDEF, SkillType.RAISERNG, SkillType.WISH]
     
     # Passive skills which affect in combat
-    passive_combat = [CAMOUFLAGE, BODYGUARD, MIRACLE, SNIPER]
+    passive_combat = [SkillType.CAMOUFLAGE, SkillType.BODYGUARD, SkillType.MIRACLE, SkillType.SNIPER]
     
     # Passive skills which activates at the beginning of each turn
-    passive_beginning = [REST]
+    passive_beginning = [SkillType.REST]
     
     
     def __init__(self,char):
@@ -117,7 +78,7 @@ class Ghost(Skill):
         super().__init__(char)
         self.name = "Ghost"
         self.flavor = "Character can pass through enemies and solid objects"
-        self.type = Skill.GHOST
+        self.type = SkillType.GHOST
         
 
 class Sneak(Skill):
@@ -128,7 +89,7 @@ class Sneak(Skill):
         super().__init__(char)
         self.name = "Sneak"
         self.flavor = "Character can pass enemy players."
-        self.type = Skill.SNEAK
+        self.type = SkillType.SNEAK
         self.affect_all = False
         self.target = True
         self.range = None
@@ -142,7 +103,7 @@ class Levitate(Skill):
         super().__init__(char)
         self.name = "Levitate"
         self.flavor = "Character can fly over gaps and certain terrains unaffected."
-        self.type = Skill.LEVITATE
+        self.type = SkillType.LEVITATE
 
 
 class Heal(Skill):
@@ -153,7 +114,7 @@ class Heal(Skill):
         super().__init__(char)
         self.name = "Heal"
         self.flavor = "Heals another character. Pwr: Mag/2"
-        self.type = Skill.HEAL
+        self.type = SkillType.HEAL
         self.range = 3
         self.affect_all = False
         self.target = True
@@ -211,7 +172,7 @@ class RaiseDef(Skill):
         super().__init__(char)
         self.name = "Raise defense"
         self.flavor = "Raises defense by 4 and resistance by 3 for all allies in range 3 until end of turn."
-        self.type = Skill.RAISEDEF
+        self.type = SkillType.RAISEDEF
         self.range = 3
         self.affect_all = True
         self.target = True
@@ -272,7 +233,7 @@ class RaiseRng(Skill):
         super().__init__(char)
         self.name = "Raise range"
         self.flavor = "Raises range by 1 for allies in range 3 until end of turn."
-        self.type = Skill.HEAL
+        self.type = SkillType.HEAL
         #self.char = char
         self.range = 3
         self.affect_all = True
@@ -335,7 +296,7 @@ class Camouflage(Skill):
         super().__init__(char)
         self.name = "Camouflage"
         self.flavor = "Raises evasion against archers by 15."
-        self.type = Skill.CAMOUFLAGE
+        self.type = SkillType.CAMOUFLAGE
         #self.char = char
         self.affect_all = False
         self.target = False
@@ -362,7 +323,7 @@ class Rest(Skill):
         super().__init__(char)
         self.name = "Rest"
         self.flavor = "Heals the user at the beginning of each turn."
-        self.type = Skill.REST
+        self.type = SkillType.REST
         self.affect_all = False
         self.target = False
         self.gain = 2   # How much is regained each turn
@@ -384,7 +345,7 @@ class Bodyguard(Skill):
         super().__init__(char)
         self.name = "Bodyguard"
         self.flavor = "Character has 2x accuracy and 1.5x damage against assassins."
-        self.type = Skill.BODYGUARD
+        self.type = SkillType.BODYGUARD
         self.affect_all = False
         self.target = False
         
@@ -417,7 +378,7 @@ class Miracle(Skill):
         super().__init__(char)
         self.name = "Miracle"
         self.flavor = "If character would die in one hit when on full HP, it survives it instead with 1 hp left."
-        self.type = Skill.MIRACLE
+        self.type = SkillType.MIRACLE
         self.affect_all = False
         self.target = False
         
@@ -444,8 +405,7 @@ class Sniper(Skill):
         super().__init__(char)
         self.name = "Sniper"
         self.flavor = "Character deals 2.5 times damage against Valkyries."
-        self.type = Skill.SNIPER
-        #self.char = char
+        self.type = SkillType.SNIPER
         self.affect_all = False
         self.target = False
         
@@ -467,7 +427,7 @@ class Wish(Skill):
         super().__init__(char)
         self.name = "Wish"
         self.flavor = "Character enables another character to move second time with enhanced stats.\n  Cannot be used on another characters with Wish."
-        self.type = Skill.WISH
+        self.type = SkillType.WISH
         self.affect_all = False
         self.target = True
         self.range = 2
@@ -489,7 +449,7 @@ class Wish(Skill):
         if not target.is_ready():
             raise IllegalMoveException("Cannot use skill on chosen character!")
         skills = target.get_skills()
-        if Skill.WISH in skills:
+        if SkillType.WISH in skills:
             raise IllegalMoveException("Cannot use skill on chosen character!")       
         
         if self.char.get_owner() == self.char.get_game().get_human():
@@ -513,7 +473,7 @@ class Wish(Skill):
         if not target.is_ready():
             return 0
         skills = target.get_skills()
-        if Skill.WISH in skills:
+        if SkillType.WISH in skills:
             return 0
         '''
         line = target.calculate_best_move()

@@ -7,7 +7,7 @@ from game_errors import IllegalMoveException
 from skill import Skill
 from game_enums import Stats
 from PyQt5.QtGui import QColor
-from game_enums import Terrain
+from game_enums import Terrain, SkillType
 
 
 class Tile:
@@ -206,7 +206,7 @@ class Sand(Tile):
         skills included in list not_affected.
         '''
         steps_taken = self.steps_taken
-        not_affected = [Skill.LEVITATE] # List of skills which give immunity to movement halting
+        not_affected = [SkillType.LEVITATE] # List of skills which give immunity to movement halting
         skills = char.get_skills()
         for skill in skills:
             if skill in not_affected:
@@ -226,7 +226,7 @@ class Wall(Tile):
     def __init__(self,game):
         Tile.__init__(self,game)
         self.object = None
-        self.passable = [Skill.GHOST]
+        self.passable = [SkillType.GHOST]
         self.endable = False
         self.steps_taken = 1
         self.type = Terrain.WALL
@@ -310,8 +310,8 @@ class Water(Tile):
     def __init__(self,game):
         Tile.__init__(self,game)
         self.object = None
-        self.passable = [Skill.LEVITATE]
-        self.endable = [Skill.LEVITATE]
+        self.passable = [SkillType.LEVITATE]
+        self.endable = [SkillType.LEVITATE]
         self.steps_taken = 1
         self.type = Terrain.WATER
         self.color = QColor(0,13,255)
