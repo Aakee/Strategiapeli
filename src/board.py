@@ -6,17 +6,10 @@ class Board:
     
     DIRECTIONS = [[-1,0],[0,1],[1,0],[0,-1]]
     
-    
-    def __init__(self,game):
-        self.game = game
-        self.height = 0
-        self.width = 0
-    
-    def set_board(self,board,height,width):
+    def set_board(self,board):
         self.board = board
-        self.height = height
-        self.width = width
-    
+        self.height = len(self.board)
+        self.width  = len(self.board[0])
     
     def get_height(self):
         return self.height
@@ -109,16 +102,12 @@ class Board:
           
         if char == None:
             raise IllegalMoveException("Source tile is empty!")
-        #if char.get_owner() != self.game.get_human():
-        #    raise IllegalMoveException("Trying to move computer controlled character!")
         
         coordinates = self.get_square(char)
-        
-        if char.get_owner() == self.game.get_human(): # Should be okay with ai without checking legality
-            legal_squares = char.get_legal_squares()
-        
-            if dst not in legal_squares:
-                raise IllegalMoveException("Cannot move to chosen tile!")
+        legal_squares = char.get_legal_squares()
+    
+        if dst not in legal_squares:
+            raise IllegalMoveException("Cannot move to chosen tile!")
         
         
         if type == 0:
@@ -295,78 +284,3 @@ class Board:
         x = abs(square1[0]-square2[0])
         y = abs(square1[1]-square2[1])
         return x+y
-    
-    
-    def __str__(self):
-        '''
-        This method is used for testing only. It returns the state of the board as a string in following format:
-        _: plain
-        ~: sand
-        &: mountain
-        x: wall
-        +: forest
-        #: Human-controlled character
-        %: Computer-controlled character
-        Characters are set in a n x m matrix, where n is boards height and m boards width.
-        @return: State of the board as a string
-        '''
-        
-        board = ""
-        for i in range(self.width):
-            board += " " + str(i)
-        board += "\n"
-        #board += "  0 1 2 3 4 5 6 7 8 9 \n"
-        human = self.game.get_human()
-        ai = self.game.get_ai()
-        
-        draw_legal_squares = False
-        draw_attack_targets = True
-        
-        #char1 = human.get_characters()[0]
-        #char1_range = self.legal_squares(char1)
-        
-        for y in range(self.height):
-            board += str(y) + " "
-            for x in range(self.width):
-                piece = self.get_piece((x,y))
-                
-                if piece == None and draw_legal_squares:
-                    type = self.get_tile((x,y)).get_type()
-                    coordinates = (x,y)
-                    if type == tile.Tile.PLAIN:
-                        board += "_ "
-                    elif type == tile.Tile.SAND:
-                        board += "~ "
-                    elif type == tile.Tile.FOREST:
-                        board += "+ "
-                    elif type == tile.Tile.MOUNTAIN:
-                        board += "& "
-                    elif type == tile.Tile.WALL:
-                        board += "x "
-                    else:
-                        board += "? " # for unknown types
-                        
-                elif piece == None:
-                    type = self.get_tile((x,y)).get_type()
-                    if type == tile.Tile.PLAIN:
-                        board += "_ "
-                    elif type == tile.Tile.SAND:
-                        board += "~ "
-                    elif type == tile.Tile.FOREST:
-                        board += "+ "
-                    elif type == tile.Tile.MOUNTAIN:
-                        board += "& "
-                    elif type == tile.Tile.WALL:
-                        board += "x "
-                    else:
-                        board += "? " # for unknown types
-                                          
-                else:
-                    if piece.get_owner() == human:
-                        board += "# "
-                    elif piece.get_owner() == ai:
-                        board += "% "
-                    else:
-                        board += "/ " # for unknown controllers; shouldn't appear
-            board += "\n"
-        return board
