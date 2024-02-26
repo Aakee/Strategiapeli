@@ -1,10 +1,6 @@
-import board
 from tile import *
 from game_errors import *
-import human
-import ai
 import character
-from board import Board
 from game import Game
 
 '''
@@ -34,13 +30,6 @@ def load_game(input_file):
 
     # Parameters for the board; this will be changed in the future
     width = 0
-    height = 0
-    board = Board()
-    game.set_board(board)
-    
-    # Player objects
-    game.set_human(human.Human())
-    game.set_ai(ai.AI())
     
     # Open save file
     try:
@@ -78,7 +67,7 @@ def load_game(input_file):
                     if not info_ready and current == "map":
                         raise CorruptedSaveFileException("Map info and data must be first!")
                     map_ready = True
-                    board.set_board(map)
+                    game.board.set_board(map)
                     current = "char"
                     
 
@@ -139,7 +128,6 @@ def load_game(input_file):
                     tile = new_tile(type, game)
                     line.append(tile)
                 map.append(line)
-                height += 1
                 
                 
             elif current == "char":

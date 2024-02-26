@@ -2,10 +2,18 @@
 The source class of the game.
 Holds all vital information.
 '''
+from game_errors import IllegalMoveException
+from human import Human
+from ai import AI
+from board import Board
+
 class Game:
     
     def __init__(self):
-        self.gui        = False
+        self.board      = Board()  # Board object
+        self.human      = Human()  # Human player
+        self.ai         = AI()     # Computer player
+
         self.capture    = True
         self.mode       = 'dm'
         self.vip        = False
@@ -13,13 +21,55 @@ class Game:
         self.turns      = False
         self.spawn      = 0
 
-        self.board      = None  # Board object
-        self.human      = None  # Human player
-        self.ai         = None  # Computer player
+        self.whose_turn = self.human
 
-        self.whose_turn = None
 
+    def move_character(self, char, target_coordinates):
+        if char.get_owner() != self.whose_turn:
+            return
+        self.board.move_char(char, target_coordinates)
+        self.check_turn_change()
+
+    def use_attack(self, char, target_coordinates, attack):
+        if char.get_owner() != self.whose_turn:
+            return
+        char.attack(attack, target_coordinates)
+        char.set_ready()
+        self.check_turn_change()
+
+    def use_skill(self, char, target_coordinates, skill):
+        if char.get_owner() != self.whose_turn:
+            return
+        char.attack(skill, target_coordinates)
+        char.set_ready()
+        self.check_turn_change()
+
+    def end_turn(self):
+        player = self.whose_turn
+        player.end_turn()
+        self.check_turn_change()
+
+    def check_turn_change(self):
+        print(self.whose_turn.is_ready())
+        if self.whose_turn.is_ready():
+            self.whose_turn.set_all_not_ready()
+            self.whose_turn = self.human if self.whose_turn == self.ai else self.ai
+            self.whose_turn.new_turn()
+
+    def is_game_over(self):
+        return not self.human.is_alive() or not self.ai.is_alive() or self.human.is_won() or self.ai.is_won()
     
+    def get_winner(self):
+        if self.human.is_won():
+            return 1
+        if self.ai.is_won():
+            return -1
+        if not self.human.is_alive():
+            return -1
+        if not self.ai.is_alive():
+            return 1
+        return 0
+
     def set_board(self, board):
         self.board = board
         

@@ -15,6 +15,28 @@ from infowindow import Infowindow
 from action import Action
 import gameIO
 
+class ActionStorage:
+    '''
+    Data class to keep track of which character is moving or attacking.
+    '''
+    NONE    = 0
+    MOVE    = 1
+    ATTACK  = 2
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self):
+        self.char   = None
+        self.type   = ActionStorage.NONE
+        self.attack = None
+
+    def set(self, char=None, type=None, attack=None):
+        self.char = char
+        self.attack = attack
+        self.type = ActionStorage.NONE if type is None else type
+
+
 
 class GUI(QMainWindow):
     '''
@@ -26,9 +48,7 @@ class GUI(QMainWindow):
     def __init__(self):                
         super().__init__()
         self.setCentralWidget(QtWidgets.QWidget())
-        #self.horizontal = QtWidgets.QHBoxLayout() # Horizontal main layout
         self.grid = QGridLayout()
-        #self.centralWidget().setLayout(self.horizontal)
         self.centralWidget().setLayout(self.grid)
         
         self.statusBar().showMessage('Avaa peli.')
@@ -37,17 +57,12 @@ class GUI(QMainWindow):
         self.x = 10
         self.y = 35
         self.buffer = False
-        self.players_turn = True
         self.game_ended = False
         app = QApplication(sys.argv)
         self.setWindowIcon(QIcon(configload.get_image('testchar_player.png')))
 
-        
-        self.active = None      # Currently active character in action-window
-        self.actionwnd = None   # Window asking the player what to do
-        self.moving = None      # Object player is currently trying to move; None if none
-        self.attacking = None   # Character currently trying to attack; None if none
-        self.attack = None      # Attack the self.attacking is trying to attack with
+        self.action_storage = ActionStorage()
+        self.active = None
         
         self.setWindowTitle('Strategiapeli')
         self.infownd = Infowindow(self)
@@ -58,14 +73,34 @@ class GUI(QMainWindow):
         self.show()
     
         sys.exit(app.exec_())
+    
+    
+    def init_game(self):
+        '''
+        Initializes the view and class members based on the self.game object
+        '''
+        self.game.set_gui(self)
+        self.initUI()
+        self.refresh_map()
+        self.infownd = Infowindow(self)
+        self.setGeometry(self.x, self.y, GUI.SQUARE_SIZE*self.game.get_board().get_width()+50, GUI.SQUARE_SIZE*self.game.get_board().get_height()+90)
         
+        print("Aloitetaan uusi peli!\n")
+        print("Pelaajan vuoro.")
+        self.game.get_human().new_turn()
+        
+        if self.game.get_turns() > 0:
+            print("Voitat {} vuoron paasta.\n".format(self.game.get_turns()))
+        if self.game.get_turns() < 0:
+            print("Haviat {} vuoron paasta. \n".format(-1 *self.game.get_turns()))
+
 
     def initUI(self):
         '''
         Draws the map.
         '''
         self.scene = QGraphicsScene()
-        self.scene.setSceneRect(0, 0, self.width*GUI.SQUARE_SIZE, self.height*GUI.SQUARE_SIZE)
+        self.scene.setSceneRect(0, 0, self.game.get_board().get_width()*GUI.SQUARE_SIZE, self.game.get_board().get_height()*GUI.SQUARE_SIZE)
         #self.grid.addWidget(self.scene,0,0)
                 
         self.view = QtWidgets.QGraphicsView(self.scene, self)
@@ -75,15 +110,16 @@ class GUI(QMainWindow):
         #self.horizontal.addWidget(self.view)
         self.grid.addWidget(self.view,0,0)
             
-        for y in range(self.height):
-            for x in range(self.width):
-                tile = self.board.get_tile((x,y))
+        for y in range(self.game.get_board().get_height()):
+            for x in range(self.game.get_board().get_width()):
+                tile = self.game.get_board().get_tile((x,y))
                 color_line = QColor(20,20,20)
                 color = tile.get_color()
                 square = Square(x, y, GUI.SQUARE_SIZE, GUI.SQUARE_SIZE,tile,self)
                 square.setBrush(color)
                 square.setPen(color_line)
                 self.scene.addItem(square)
+
                 
     def char_info(self):
         char = self.active
@@ -144,9 +180,9 @@ class GUI(QMainWindow):
         Method refreshes the map: all tiles are recolored back to normal,
         and characters are printed to their current tile.
         '''
-        for y in range(self.height):
-            for x in range(self.width):
-                tile = self.board.get_tile((x,y))
+        for y in range(self.game.get_board().get_height()):
+            for x in range(self.game.get_board().get_width()):
+                tile = self.game.get_board().get_tile((x,y))
                 color = tile.get_color()
                 square = tile.get_gui_tile()
                 square.setBrush(color)
@@ -179,7 +215,7 @@ class GUI(QMainWindow):
         These are the squares we try to paint again.
         '''
         for coordinates in squares:
-            tile = self.board.get_tile(coordinates)
+            tile = self.game.get_board().get_tile(coordinates)
             gui_tile = tile.get_gui_tile()
             color = tile.get_color2()
             gui_tile.setBrush(color)
@@ -193,7 +229,7 @@ class GUI(QMainWindow):
         These are the squares we try to paint again.
         '''
         for coordinates in squares:
-            tile = self.board.get_tile(coordinates)
+            tile = self.game.get_board().get_tile(coordinates)
             gui_tile = tile.get_gui_tile()
             color = tile.get_color_attack()
             gui_tile.setBrush(color)
@@ -205,7 +241,7 @@ class GUI(QMainWindow):
         These are the squares we try to paint again.
         '''
         for coordinates in squares:
-            tile = self.board.get_tile(coordinates)
+            tile = self.game.get_board().get_tile(coordinates)
             gui_tile = tile.get_gui_tile()
             color = tile.get_color_skill()
             gui_tile.setBrush(color)
@@ -223,41 +259,9 @@ class GUI(QMainWindow):
         if fname[0] == '': #If canceled
             return
         try:
-            new_game = gameIO.load_game(fname[0])
-            if self.game != None:
-                self.empty()
-                
-            try:
-                self.infownd.close()
-            except: # If there is none
-                pass
-            try:
-                self.actionwnd.close()
-            except:
-                pass
-            
-            self.game = new_game
-            self.game.set_gui(self)
-            self.board = self.game.get_board()
-            self.height = self.board.get_height()
-            self.width = self.board.get_width()
-            self.initUI()
-            self.refresh_map()
-            self.infownd = Infowindow(self)
-            self.setGeometry(self.x, self.y, GUI.SQUARE_SIZE*self.width+50, GUI.SQUARE_SIZE*self.height+90)
-            self.statusBar().showMessage('Pelin lataus onnistui!')
-            
-            print("Aloitetaan uusi peli!\n")
-            print("Pelaajan vuoro.")
-            self.game_ended = False
-            self.players_turn = True
-            self.game.get_human().new_turn()
-            
-            if self.game.get_turns() > 0:
-                print("Voitat {} vuoron paasta.\n".format(self.game.get_turns()))
-            if self.game.get_turns() < 0:
-                print("Haviat {} vuoron paasta. \n".format(-1 *self.game.get_turns()))
-            
+            self.game = gameIO.load_game(fname[0])
+            self.init_game()
+
         except CorruptedMapDataException as e:
             self.error = ErrorWindow(str(e))
             self.error.show()
@@ -330,11 +334,8 @@ class GUI(QMainWindow):
     def get_infownd(self):
         return self.infownd
     
-    def is_players_turn(self):
-        return self.players_turn
-    
     def set_all_ready(self):
-        if self.is_players_turn():
+        if self.game.whose_turn == self.game.human:
             self.game.get_human().end_turn()
             self.end_turn()
     
@@ -359,14 +360,97 @@ class GUI(QMainWindow):
         according to that.
         @return: Tuple in format (xPosition, yPosition, width of the grid, height of the grid)
         '''
-        return (self.x,self.y,self.width,self.height)
+        return (self.x,self.y,self.game.get_board().get_width(),self.game.get_board().get_height())
     
+    def map_clicked(self,x,y):
+        '''
+        Method handles mouse click events. The method is called from the Square objects, which also give
+        coordinates to this method.
+        @param x,y: Coordinates of clicked square (in game coordinate system, not measured in pixels)
+        '''
+        #self.end_turn()
+
+        if self.game.is_game_over():
+            return
+        
+        if self.game.whose_turn != self.game.get_human():
+            self.game.ai.make_turn()
+
+                
+        # There are no character moving or attacking
+        if self.action_storage.type == ActionStorage.NONE:
+
+            char = self.get_game().get_board().get_piece((x,y))
+            if char is None:
+                return
+                
+            if char.get_owner() == self.game.get_human() and not char.is_ready():
+                self.action_storage.set(char=char, type=ActionStorage.MOVE)
+                self.set_active(char)
+                legal_squares = char.get_legal_squares()
+                self.recolor_map(legal_squares)
+                self.statusBar().showMessage('Valitse ruutu.')
+                
+            elif char.get_owner() == self.game.get_human():
+                self.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
+                    
+            else:
+                self.statusBar().showMessage('Valitse hahmo.')
+                self.refresh_map()
+            self.get_infownd().refresh()
+        
+        # A character is moving            
+        elif self.action_storage.type == ActionStorage.MOVE:
+            char = self.action_storage.char
+            legal_squares = char.get_legal_squares()
+            other_char = self.get_game().get_board().get_piece((x,y))
+            if other_char != None and other_char.get_owner() == self.get_game().get_human() and not char.is_ready():
+                self.refresh_map()
+                self.action_storage.set(char=other_char, type=ActionStorage.MOVE)
+                self.set_active(other_char)
+                legal_squares = other_char.get_legal_squares()
+                self.recolor_map(legal_squares)
+                self.statusBar().showMessage('Valitse ruutu.')                
+            else:    
+                try:
+                    #self.game.get_board().move_char(char,(x,y))
+                    self.game.move_character(char,(x,y))
+                    self.refresh_map()
+                    
+                except IllegalMoveException:
+                    self.statusBar().showMessage('Et voi siirtaa hahmoa siihen!')   
+                    self.refresh_map()
+                finally:
+                    self.action_storage.reset()
+                    self.refresh_map()
+                    self.get_infownd().refresh()
+        
+        # A character is attacking or using a skill
+        else:
+            buffer = self.get_buffer()
+            if buffer:
+                return
+            try:
+                char, attack = self.action_storage.char, self.action_storage.attack
+                #char.attack(attack,(x,y))
+                self.game.use_attack(char,(x,y),attack)
+                self.statusBar().showMessage('Valitse hahmo.')
+            except IllegalMoveException:
+                self.statusBar().showMessage('Et voi hyokata siihen!')
+            finally:
+                self.action_storage.reset()
+                self.set_active(None)
+                self.refresh_map()
+                self.get_infownd().refresh()
+    
+
     def end_turn(self):
         '''
         Method is called every time player clicks on the map to check, whose turn it should be.
         Method also declares the winner, if game has ended.
         '''
-        if self.moving == None and self.attacking == (None,None):
+        return
+        if self.action_storage.type == ActionStorage.NONE:
             self.refresh_map()
             self.infownd.refresh()
             
@@ -381,11 +465,10 @@ class GUI(QMainWindow):
             self.game_ended = True
             
             
-        elif self.players_turn: # Player's turn
+        elif self.game.whose_turn == self.game.get_human(): # Player's turn
             
             if self.game.get_human().is_ready(): # If player has already moven all their characters
                 self.refresh_map()
-                self.players_turn = False
                 print("\n\nTietokoneen vuoro!\n")
                 self.game.get_ai().new_turn()
                 self.game.get_human().set_all_not_ready()
@@ -402,7 +485,6 @@ class GUI(QMainWindow):
                 self.infownd.refresh()
             
             else: # If computer has moven all their characters
-                self.players_turn = True
                 self.game.get_ai().set_all_not_ready()
                 print("\n\nPelaajan vuoro!\n")
                     
@@ -450,12 +532,11 @@ class GUI(QMainWindow):
                
             if len(squares) == 0:
                 self.statusBar().showMessage('Hyokkayksella ei ole laillisia kohteita!')
-                self.set_moving(None)
-                self.set_attacking(None,None)
+                self.action_storage.reset()
                 return
             
             self.recolor_map_attacking(squares)
-            self.set_attacking(char,self.return_cont)
+            self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
             self.statusBar().showMessage('Valitse kohde.')
         
         
@@ -472,8 +553,7 @@ class GUI(QMainWindow):
             
             if len(squares) == 0 and skill.targets():
                 self.statusBar().showMessage('Kyvylla ei ole laillisia kohteita!')
-                self.set_moving(None)
-                self.set_attacking(None,None)
+                self.action_storage.reset()
                 return
             
             if skill.affects_all() or not skill.targets():
@@ -481,12 +561,12 @@ class GUI(QMainWindow):
             else:
                 self.recolor_map_skill(squares)
                 
-            self.set_attacking(char,self.return_cont)
+            self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
             self.statusBar().showMessage('Valitse kohde.')
                          
         else:
-            self.set_moving(None)
-            self.set_attacking(None,None)
+            self.action_storage.reset()
+            self.set_active(None)
             self.refresh_map()
             self.get_infownd().refresh()
             
@@ -544,97 +624,8 @@ class Square(QGraphicsRectItem):
         self.image = []
         
     def mousePressEvent(self, e):
-        self.return_cont = None
-        self.return_type = None
 
         if e.buttons() != Qt.LeftButton:
             return
-        
-        self.gui.end_turn()
-        
-        if not self.gui.is_players_turn():
-            return
-        
-        if self.gui.game_over():
-            return
-        
-        
-        # There are no character moving or attacking
-        
-        attacking, attack = self.gui.get_attacking()
-        moving = self.gui.get_moving()
-        active = self.gui.get_active()
-        
-        if moving == None and attacking == None:
-            
-            buffer = self.gui.get_buffer()
-            if buffer:
-                return
 
-            char = self.gui.get_game().get_board().get_piece((self.x,self.y))
-            
-            if self.tile.get_object() != None:
-                char = self.tile.get_object()
-                
-                if char.get_owner() == self.game.get_human() and not char.is_ready():
-                    self.gui.set_active(char)
-                    legal_squares = char.get_legal_squares()
-                    self.gui.recolor_map(legal_squares)
-                    self.gui.set_moving(char)
-                    self.gui.statusBar().showMessage('Valitse ruutu.')
-                    
-                elif char.get_owner() == self.game.get_human():
-                    self.gui.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
-                    
-            else:
-                self.gui.statusBar().showMessage('Valitse hahmo.')
-                self.gui.refresh_map()
-            self.gui.get_infownd().refresh()
-        
-        # A character is moving            
-        elif attacking == None:
-            char = self.gui.get_moving()
-            legal_squares = char.get_legal_squares()
-            other_char = self.gui.get_game().get_board().get_piece((self.x,self.y))
-            if other_char != None and other_char.get_owner() == self.gui.get_game().get_human() and not char.is_ready():
-                self.gui.refresh_map()
-                self.gui.set_active(other_char)
-                legal_squares = other_char.get_legal_squares()
-                self.gui.recolor_map(legal_squares)
-                self.gui.set_moving(other_char)
-                self.gui.statusBar().showMessage('Valitse ruutu.')                
-            else:    
-                try:
-                    self.game.get_board().move_char(char,(self.x,self.y))
-                    self.gui.refresh_map()
-                    #self.action = Action(self,char)
-                    #self.gui.char_info()
-                    #self.action.exec_()
-                    
-                except IllegalMoveException:
-                    self.gui.statusBar().showMessage('Et voi siirtaa hahmoa siihen!')   
-                    self.gui.refresh_map()
-                finally:
-                    self.gui.set_moving(None)
-                    self.gui.refresh_map()
-                    self.gui.get_infownd().refresh()
-        
-        # A character is attacking or using a skill
-        else:
-            buffer = self.gui.get_buffer()
-            if buffer:
-                return
-            try:
-                char, attack = self.gui.get_attacking()
-                char.attack(attack,(self.x,self.y))
-                self.gui.statusBar().showMessage('Valitse hahmo.')
-            except IllegalMoveException:
-                self.gui.statusBar().showMessage('Et voi hyokata siihen!')
-            finally:
-                self.gui.set_attacking(None,None)
-                self.gui.set_moving(None)
-                self.gui.refresh_map()
-                self.gui.get_infownd().refresh()
-                self.buffer = 0
-        
-        self.gui.end_turn()
+        self.gui.map_clicked(self.x,self.y)
