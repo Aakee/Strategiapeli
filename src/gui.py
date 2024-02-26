@@ -52,7 +52,9 @@ class GUI(QMainWindow):
         
         self.statusBar().showMessage('Avaa peli.')
         self.game = None
+        self.winner_declared = False
         self.square_size = 50
+
         self.x = 10
         self.y = 35
         app = QApplication(sys.argv)
@@ -86,6 +88,7 @@ class GUI(QMainWindow):
         
         print("Aloitetaan uusi peli!\n")
         print("Pelaajan vuoro.")
+        self.winner_declared = False
         self.game.get_human().new_turn()
         
         if self.game.get_turns() > 0:
@@ -339,16 +342,22 @@ class GUI(QMainWindow):
         self.infownd.close()
         self.infownd = Infowindow(self)
     
-    def get_buffer(self):
+    def declare_winner(self):
         '''
-        To help minimize wrong inputs to map, every other click is ignored.
-        When this method is called, method returns its state and then alters it.
-        @return: False: Next click will be recognized, True: Next click will be ignored
+        Declares the winner of the game if the game has ended.
         '''
-        #self.buffer = (self.buffer == False)
-        #return self.buffer == False
-        return False
+        winner = self.game.get_winner()
+        if self.winner_declared or winner == 0:
+            return
+        if winner == 1:
+            print("Voitit pelin!")
+            self.statusBar().showMessage('Voitit pelin!')
+        if winner == -1:
+            print("Havisit pelin!")
+            self.statusBar().showMessage('Havisit pelin!')
+        self.winner_declared = True
         
+
     
     def get_geometry(self):
         '''
@@ -368,6 +377,7 @@ class GUI(QMainWindow):
 
         # Return if winner is already determined
         if self.game.is_game_over():
+            self.declare_winner()
             return
         
         # Check if about to change turns, and do so if needed
@@ -379,6 +389,7 @@ class GUI(QMainWindow):
         if self.game.whose_turn != self.game.get_human():
             self.game.ai_make_turn()
             self.refresh_map()
+            self.get_infownd().refresh()
             return
         
         # Refresh map to remove all old highlightnings
@@ -414,6 +425,7 @@ class GUI(QMainWindow):
                 try:
                     attack = self.action_storage.attack
                     self.game.use_attack(active_char, (x,y), attack)
+                    self.set_active_character(None)
                 except IllegalMoveException:
                     self.statusBar().showMessage('Et voi hyokata siihen!')
 
@@ -450,68 +462,82 @@ class GUI(QMainWindow):
         if self.game.change_turn():
             self.refresh_map()
 
+        self.infownd.refresh()
+
 
     
     def set_action_return(self,contents,char):
         '''
         Gets inputs from action dialog.
-        @param contents: tuple in form of (actions name, actions type). Type is either "a" for attack or "s" for skill.
+        @param contents: tuple in form of (actions name, actions type). Type is "a" for attack, "s" for skill, or "p" for pass.
+        @param char: the character who did the action
         '''
         self.refresh_map()
-        self.return_cont, self.return_type = contents[0], contents[1]
+        return_cont, return_type = contents[0], contents[1]
 
-        if self.return_type == "a":
+        # Case 1: Attack
+        if return_type == "a":
             attacks = char.get_attacks()
-            for attack in attacks:
-                if attack.get_name() == self.return_cont:
-                    self.return_cont = attack
+            for attack in attacks:      # Find the attack which corresponds to the button text
+                if attack.get_name() == return_cont:
+                    return_cont = attack
             
-            attack = self.return_cont
+            # Find the squares where the character can use this attack to
+            attack = return_cont
             range = attack.get_range()
             min_range, max_range = range[0], range[1]
             squares = char.define_attack_targets(char.get_square(),max_range,attack.targets_enemy())
                
+            # Return if there are no legal targets
             if len(squares) == 0:
                 self.statusBar().showMessage('Hyokkayksella ei ole laillisia kohteita!')
                 self.action_storage.reset()
                 return
             
+            # Recolor map highlighting squares where can be attacked, and set the character and attack to action_storage
             self.recolor_map_attack(squares)
-            self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
+            self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=return_cont)
             self.statusBar().showMessage('Valitse kohde.')
         
 
-        elif self.return_type == "s":
+        # Case 2: Skill
+        elif return_type == "s":
             skills = char.get_full_skills()
-            for skill in skills:
-                if skill.get_name() == self.return_cont:
-                    self.return_cont = skill
+            for skill in skills: # Find the skill which corresponds to the button text
+                if skill.get_name() == return_cont:
+                    return_cont = skill
             
-            skill = self.return_cont
+            # Find the squares where the character can use this skill to
+            skill = return_cont
             range = skill.get_range()
             all_squares = self.game.get_board().get_tiles_in_range(char.get_square(),range)
             squares = char.define_attack_targets(char.get_square(),range,skill.targets_enemy())
             
+            # Return if the skill targets a single character and there are no legal targets
             if len(squares) == 0 and skill.targets():
                 self.statusBar().showMessage('Kyvylla ei ole laillisia kohteita!')
                 self.action_storage.reset()
                 return
             
+            # Highlight the squares where this skill can be used to in case it targets, or all squares in area if it does not
             if skill.affects_all() or not skill.targets():
                 self.recolor_map_skill(all_squares)
             else:
                 self.recolor_map_skill(squares)
-                
-            self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
+            
+            # Set the character and skill to action_storage
+            self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=return_cont)
             self.statusBar().showMessage('Valitse kohde.')
                          
-
-        elif self.return_type == "p":
+        # Case 3: Pass
+        elif return_type == "p":
+            # Pass the character turn
             self.game.pass_character_turn(char)
             self.set_active_character(None)
+            self.action_storage.reset()
             self.refresh_map()
         
-        
+
         else:
             self.action_storage.reset()
             self.set_active_character(None)
