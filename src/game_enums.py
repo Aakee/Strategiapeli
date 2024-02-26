@@ -3,6 +3,13 @@ Includes some enumerations used in the game.
 '''
 from enum import Enum
 
+class PlayerColor(Enum):
+    '''
+    Depicts the two players of the game.
+    '''
+    BLUE        = "blue"
+    RED         = "red"
+
 class Stats(Enum):
     '''
     Character stats

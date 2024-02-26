@@ -150,9 +150,13 @@ def load_game(input_file):
                         if owner_set != None:
                             raise CorruptedSaveFileException
                         if current_line[1].lower().strip() == "player":
-                            owner_set = game.get_human()
+                            owner_set = game.get_blue_player()
                         elif current_line[1].lower().strip() == "computer":
-                            owner_set = game.get_ai()
+                            owner_set = game.get_red_player()
+                        elif current_line[1].lower().strip() == "blue":
+                            owner_set = game.get_blue_player()
+                        elif current_line[1].lower().strip() == "red":
+                            owner_set = game.get_red_player()
                         else:
                             raise CorruptedSaveFileException("Hahmon omistajaa ei tunnistettu!\nRivi: " + str(line))
                             

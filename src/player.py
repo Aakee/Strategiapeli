@@ -2,13 +2,15 @@ import random
 
 class Player:
     
-    def __init__(self):
+    def __init__(self, color):
         self.characters = []
         self.alive = True
         self.won = False    # Set to true if won by some other condition than killing all enemies
         self.lost = False   # Set to true if lost by some other condition than getting all characters killed
         self.vip = False    # Determines the type of game; if there's at least one vip, self.vip is True
         self.first = True   # True only on first turn.
+        self.ai = False
+        self.color=color
         
     def is_alive(self):
         '''
@@ -49,6 +51,9 @@ class Player:
     
     def set_lost(self):
         self.lost = True
+
+    def is_ai(self):
+        return self.ai
     
     def set_vip(self):
         '''
@@ -88,8 +93,8 @@ class Human(Player):
     '''
     Player controlled by a human player
     '''
-    def __init__(self):
-        Player.__init__(self)
+    def __init__(self, color):
+        Player.__init__(self, color)
         self.ai = False
         
 
@@ -97,8 +102,8 @@ class AI(Player):
     '''
     Player controlled by an AI
     '''
-    def __init__(self):
-        Player.__init__(self)
+    def __init__(self, color):
+        Player.__init__(self, color)
         self.ai = True
         
     def make_turn(self):
@@ -113,12 +118,12 @@ class AI(Player):
         char.ai_make_turn()
 
 
-def create_new_player(ai_controlled):
+def create_new_player(color,ai_controlled):
     '''
     Creates and returns a Player character based on whether a player or AI controls it.
     @param player_controlled: True if a human controls the player, False if it is controlled by AI
     '''
     if ai_controlled:
-        return Human()
+        return AI(color=color)
     else:
-        return AI()
+        return Human(color=color)

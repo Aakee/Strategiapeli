@@ -2,143 +2,90 @@
 The source class of the game.
 Holds all vital information.
 '''
-from game_errors import IllegalMoveException
+from game_enums import PlayerColor
 import player
 from board import Board
 
 class Game:
     
-    def __init__(self):
+    def __init__(self, blue_controlled_by_ai=True, red_controlled_by_ai=True):
         self.board      = Board()  # Board object
-        self.human      = player.create_new_player(ai_controlled=False)   # Human player
-        self.ai         = player.create_new_player(ai_controlled=True)    # Computer player
-
-        self.capture    = True
-        self.mode       = 'dm'
-        self.vip        = False
-        self.init_turns = False
-        self.turns      = False
-        self.spawn      = 0
-
-        self.whose_turn = self.human
+        self.players    = {  
+                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai),
+                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai)
+                          }
+        self.whose_turn = PlayerColor.BLUE
 
 
     def move_character(self, char, target_coordinates):
-        if char.get_owner() != self.whose_turn or char.is_ready():
+        if char.get_owner() != self.get_current_player() or char.is_ready():
             return
         self.board.move_char(char, target_coordinates)
 
     def use_attack(self, char, target_coordinates, attack):
-        if char.get_owner() != self.whose_turn or char.is_ready():
+        if char.get_owner() != self.get_current_player() or char.is_ready():
             return
         char.attack(attack, target_coordinates)
 
     def use_skill(self, char, target_coordinates, skill):
-        if char.get_owner() != self.whose_turn or char.is_ready():
+        if char.get_owner() != self.get_current_player() or char.is_ready():
             return
         char.attack(skill, target_coordinates)
 
     def pass_character_turn(self, char):
-        if char.get_owner() != self.whose_turn or char.is_ready():
+        if char.get_owner() != self.get_current_player() or char.is_ready():
             return
         char.set_ready()
 
     def ai_make_turn(self):
-        self.ai.make_turn()
+        if self.players[self.whose_turn].ai:
+            self.players[self.whose_turn].make_turn()
 
     def end_turn(self):
-        player = self.whose_turn
-        player.end_turn()
+        if not self.get_current_player().is_ai():
+            self.get_current_player().end_turn()
 
     def change_turn(self):
-        if self.whose_turn.is_ready():
-            self.whose_turn.set_all_not_ready()
-            self.whose_turn = self.human if self.whose_turn == self.ai else self.ai
-            self.whose_turn.new_turn()
+        if self.players[self.whose_turn].is_ready():
+            self.players[self.whose_turn].set_all_not_ready()
+            self.whose_turn = PlayerColor.BLUE if self.whose_turn == PlayerColor.RED else PlayerColor.RED
+            self.players[self.whose_turn].new_turn()
             return True
         return False
 
     def is_player_ready(self):
-        if self.whose_turn.is_ready():
+        if self.players[self.whose_turn].is_ready():
             return True
         return False
 
+    def get_player(self, color: PlayerColor):
+        return self.players[color]
+    
+    def get_blue_player(self):
+        return self.players[PlayerColor.BLUE]
+    
+    def get_red_player(self):
+        return self.players[PlayerColor.RED]
+    
+    def get_current_player(self):
+        return self.players[self.whose_turn]
+    
     def is_game_over(self):
-        return not self.human.is_alive() or not self.ai.is_alive() or self.human.is_won() or self.ai.is_won()
+        return not self.get_blue_player().is_alive() or not self.get_red_player().is_alive() or self.get_blue_player().is_won() or self.get_red_player().is_won()
     
     def get_winner(self):
-        if self.human.is_won():
+        if self.get_blue_player().is_won():
             return 1
-        if self.ai.is_won():
+        if self.get_red_player().is_won():
             return -1
-        if not self.human.is_alive():
+        if not self.get_blue_player().is_alive():
             return -1
-        if not self.ai.is_alive():
+        if not self.get_red_player().is_alive():
             return 1
         return 0
 
     def set_board(self, board):
         self.board = board
         
-    def set_human(self,human):
-        self.human = human
-        
-    def set_ai(self,ai):
-        self.ai = ai
-        
     def get_board(self):
         return self.board
-    
-    def get_human(self):
-        return self.human
-    
-    def get_ai(self):
-        return self.ai
-    
-    def get_io(self):
-        return self.io
-    
-    def get_capture(self):
-        return self.capture
-    
-    def set_gui(self,gui):
-        self.gui = gui
-        
-    def get_gui(self):
-        return self.gui
-    
-    def set_vip(self):
-        self.vip = True
-        
-    def is_vip(self):
-        return self.vip
-    
-    def set_mode(self, mode):
-        self.mode = mode
-        
-    def get_mode(self):
-        return self.mode
-        
-    def set_turns(self, turns):
-        self.init_turns = turns
-        self.turns      = turns
-        
-    def next_turn(self,first_turn):
-        if first_turn:
-            return
-        if self.init_turns > 0:
-            self.turns -= 1
-        if self.init_turns < 0:
-            self.turns += 1
-        
-    def get_init_turns(self):
-        return self.init_turns
-        
-    def get_turns(self):
-        return self.turns
-        
-    def set_spawn(self, spawn):
-        self.spawn = spawn
-        
-    def get_spawn(self):
-        return self.spawn

@@ -225,9 +225,9 @@ class Character:
             filename += '_carry_'
         if self.ready:
             filename += '_moven.png'
-        elif self.owner == self.game.get_human():
+        elif self.owner == self.game.get_blue_player():
             filename += '_player.png'
-        elif self.owner == self.game.get_ai():
+        elif self.owner == self.game.get_red_player():
             filename += '_enemy.png'
         else:
             raise KeyError("Error with player's controller!")
@@ -238,9 +238,9 @@ class Character:
         Same as get_path, but always returns path to coloured version of the picture (not the grey variant).
         '''
         filename = self.name.lower()
-        if self.owner == self.game.get_human():
+        if self.owner == self.game.get_blue_player():
             filename += '_player.png'
-        elif self.owner == self.game.get_ai():
+        elif self.owner == self.game.get_red_player():
             filename += '_enemy.png'
         else:
             raise KeyError("Error with player's controller!")
@@ -267,7 +267,7 @@ class Character:
         
         #print(self.game.get_board().get_tile(self.game.get_board().get_square(self)))
         #print(self.tile.get_gui_tile())
-        if self.owner == self.game.get_human() and self.game.get_board().get_tile(self.game.get_board().get_square(self)) != None: # If player controls char and gui is active
+        if not self.owner.is_ai() and self.game.get_board().get_tile(self.game.get_board().get_square(self)) != None: # If player controls char and gui is active
             wnd = ConfirmAttack(self,attack,target)     
             if not wnd.exec_():
                 return
@@ -322,10 +322,10 @@ class Character:
         if not enemy:
             target = self.get_owner()
         else:
-            if self.get_owner() == self.game.get_human():
-                target = self.game.get_ai()
+            if self.get_owner() == self.game.get_blue_player():
+                target = self.game.get_red_player()
             else:
-                target = self.game.get_human()
+                target = self.game.get_blue_player()
         return self.board.legal_attack_targets(square,range,target)
     
     def define_attack_squares(self,tile):
@@ -488,7 +488,8 @@ class Character:
         '''
         value = 1
         possible_damage = 0
-        for char in self.game.get_human().get_characters():
+        enemy = self.game.get_blue_player() if self.owner == self.game.get_red_player() else self.game.get_red_player()
+        for char in enemy.get_characters():
             possible_squares = self.board.legal_squares(char)
             enemy_attacks = char.get_attacks()
             for enemy_attack in enemy_attacks:
@@ -497,7 +498,7 @@ class Character:
                 max_range = range[1]
                             
                 for enemy_square in possible_squares:
-                    danger_squares = self.board.legal_attack_targets(enemy_square,max_range,self.game.get_human())
+                    danger_squares = self.board.legal_attack_targets(enemy_square,max_range,enemy)
                                 
                     if square in danger_squares:
                         dmg = enemy_attack.calculate_probable_damage(self)
@@ -523,7 +524,7 @@ class Character:
         if possible_damage == 0 and self.get_type() != CharacterClass.CLERIC:
             enemy_squares = []
             subvalue = 1
-            for char in self.game.get_human().get_characters():
+            for char in enemy.get_characters():
                 enemy_squares.append(char.get_square())
             for tile in enemy_squares:
                 distance = self.game.get_board().distance_to(square,tile)
@@ -563,10 +564,10 @@ class Character:
         char = "\n"
         char += name + "\n"
         
-        if self.get_owner() == self.game.get_human():
-            char += "Controller: Human\n"
+        if self.get_owner() == self.game.get_blue_player():
+            char += "Controller: Blue\n"
         else:
-            char += "Controller: Computer\n"
+            char += "Controller: Red\n"
             
         tile = self.get_square()
         char += "In tile " + str(tile) + "\n"
@@ -767,7 +768,7 @@ class Valkyrie(Character):
         self.attacks.append(attack.Magic((self, (1,2), 1.3, 90, 'Stormwind', 'Cast a somewhat powerful wind magic. Range: 2')))
         
     def get_path(self):
-        if self.owner == self.game.get_ai() and self.is_ready():
+        if self.owner == self.game.get_red_player() and self.is_ready():
             return configload.get_image('valkyrie_enemy_moven.png')
         return Character.get_path(self)
     

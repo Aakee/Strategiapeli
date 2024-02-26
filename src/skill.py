@@ -126,7 +126,7 @@ class Heal(Skill):
         heal = round(mag/2)
         squares = self.char.define_attack_targets(self.char.get_square(), self.range, False)
 
-        if coordinates not in squares and self.char.get_owner() == self.char.get_game().get_human():
+        if coordinates not in squares and not self.char.get_owner().is_ai():
             raise IllegalMoveException("Cannot use skill on chosen tile!")
         
         elif coordinates not in squares: # Because character defined it would be a good idea before moving :P
@@ -139,7 +139,7 @@ class Heal(Skill):
         maxhp = target.get_maxhp()
         if hp + heal > maxhp:
             heal = maxhp - hp
-        if self.char.get_owner() == self.char.get_game().get_human():
+        if not self.char.get_owner().is_ai():
             string = "Heal amount: " + str(heal)
             wnd = ConfirmSkill(self.char,self,string)
             if not wnd.exec_():
@@ -186,7 +186,7 @@ class RaiseDef(Skill):
         if coordinates not in all_squares:
             raise IllegalMoveException("Trying to use skill in no range!")
         
-        if self.char.get_owner() == self.char.get_game().get_human():
+        if not self.char.get_owner().is_ai():
             string = "Raise stats for nearby allies?"
             wnd = ConfirmSkill(self.char,self,string)
             if not wnd.exec_():
@@ -248,7 +248,7 @@ class RaiseRng(Skill):
         if coordinates not in all_squares:
             raise IllegalMoveException("Trying to use skill in no range!")
         
-        if self.char.get_owner() == self.char.get_game().get_human():
+        if not self.char.get_owner().is_ai():
             string = "Raise range for nearby allies?"
             wnd = ConfirmSkill(self.char,self,string)
             if not wnd.exec_():
@@ -452,7 +452,7 @@ class Wish(Skill):
         if SkillType.WISH in skills:
             raise IllegalMoveException("Cannot use skill on chosen character!")       
         
-        if self.char.get_owner() == self.char.get_game().get_human():
+        if not self.char.get_owner().is_ai():
             string = "Use Wish?"
             wnd = ConfirmSkill(self.char,self,string)
             if not wnd.exec_():

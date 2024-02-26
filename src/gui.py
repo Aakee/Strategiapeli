@@ -79,7 +79,6 @@ class GUI(QMainWindow):
         '''
         Initializes the view and class members based on the self.game object
         '''
-        self.game.set_gui(self)
         self.initUI()
         self.refresh_map()
         self.infownd.close()
@@ -87,14 +86,23 @@ class GUI(QMainWindow):
         self.setGeometry(self.x, self.y, GUI.SQUARE_SIZE*self.game.get_board().get_width()+50, GUI.SQUARE_SIZE*self.game.get_board().get_height()+90)
         
         print("Aloitetaan uusi peli!\n")
-        print("Pelaajan vuoro.")
         self.winner_declared = False
-        self.game.get_human().new_turn()
-        
-        if self.game.get_turns() > 0:
-            print("Voitat {} vuoron paasta.\n".format(self.game.get_turns()))
-        if self.game.get_turns() < 0:
-            print("Haviat {} vuoron paasta. \n".format(-1 *self.game.get_turns()))
+        self.game.get_blue_player().new_turn()
+
+        self.blue_is_ai = self.game.get_blue_player().is_ai()
+        self.red_is_ai = self.game.get_red_player().is_ai()
+
+        if self.blue_is_ai and self.red_is_ai:
+            self.nof_ai_players = 2
+            self.nof_human_players = 0
+        elif not self.blue_is_ai and not self.red_is_ai:
+            self.nof_ai_players = 0
+            self.nof_human_players = 2
+        else:
+            self.nof_ai_players = 1
+            self.nof_human_players = 1
+
+        print("Sinisen pelaajan vuoro!")
 
 
     def initUI(self):
@@ -334,8 +342,8 @@ class GUI(QMainWindow):
         return self.infownd
     
     def set_all_ready(self):
-        if self.game.whose_turn == self.game.human:
-            self.game.get_human().end_turn()
+        if not self.game.get_current_player().is_ai():
+            self.game.end_turn()
             self.new_turn()
     
     def new_infownd(self):
@@ -349,12 +357,19 @@ class GUI(QMainWindow):
         winner = self.game.get_winner()
         if self.winner_declared or winner == 0:
             return
-        if winner == 1:
-            print("Voitit pelin!")
-            self.statusBar().showMessage('Voitit pelin!')
-        if winner == -1:
-            print("Havisit pelin!")
-            self.statusBar().showMessage('Havisit pelin!')
+        if self.nof_human_players == 1:
+            if winner == 1:
+                print("Voitit pelin!")
+                self.statusBar().showMessage('Voitit pelin!')
+            if winner == -1:
+                print("Havisit pelin!")
+                self.statusBar().showMessage('Havisit pelin!')
+        else:
+            if winner == 1:
+                print("Sininen pelaaja voitti!")
+            if winner == -1:
+                print("Punainen pelaaja voitti!")
+            self.statusBar().showMessage('Peli ohi')
         self.winner_declared = True
         
 
@@ -386,7 +401,7 @@ class GUI(QMainWindow):
             return
         
         # If it's AI's turn, set it to do its turn independently
-        if self.game.whose_turn != self.game.get_human():
+        if self.game.get_current_player().is_ai():
             self.game.ai_make_turn()
             self.refresh_map()
             self.get_infownd().refresh()
@@ -401,7 +416,7 @@ class GUI(QMainWindow):
         clicked_char_owner = None if clicked_char is None else clicked_char.get_owner()
 
         # If clicked own character and either character is moving or nothing is set: select this character to be moved
-        if self.action_storage.type in ( ActionStorage.NONE, ActionStorage.MOVE ) and clicked_char_owner == self.game.get_human():
+        if self.action_storage.type in ( ActionStorage.NONE, ActionStorage.MOVE ) and clicked_char_owner == self.game.get_current_player():
             if clicked_char.is_ready():
                 self.action_storage.reset()
                 self.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
@@ -447,15 +462,19 @@ class GUI(QMainWindow):
         if not self.game.is_player_ready():
             return
         
-        # Player is starting their turn
-        if self.game.whose_turn == self.game.get_ai():
-            print("\n\nPelaajan vuoro!\n")
-            self.statusBar().showMessage('Valitse hahmo.')
+        # Red player is starting their turn
+        if self.game.get_current_player() == self.game.get_blue_player():
+            print("\n\nPunaisen pelaajan vuoro!\n")
             self.save_game(configload.get_filepath('savedata','backup.txt')) # Backup save each turn
 
-        # AI is starting their turn
-        if self.game.whose_turn == self.game.get_human():
-            print("\n\nTietokoneen vuoro!\n")
+        # Blue player is starting their turn
+        else:
+            print("\n\nSinisen pelaajan vuoro!\n")
+
+        # Set status bar message
+        if not self.game.get_current_player().is_ai():
+            self.statusBar().showMessage('Valitse hahmo.')
+        else:
             self.statusBar().showMessage('Tietokoneen vuoro... (Klikkaa karttaa edetaksesi)')
 
         # Change turn

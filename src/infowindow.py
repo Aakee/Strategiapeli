@@ -24,19 +24,19 @@ class Infowindow(QWidget):
         self.setWindowTitle('Info')
         self.setWindowIcon(QIcon(configload.get_image('testchar_player.png' )))
         if self.game != None:
-            self.player = self.game.get_human()
-            self.ai = self.game.get_ai()
+            self.blue = self.game.get_blue_player()
+            self.red = self.game.get_red_player()
             self.refresh()
             
             gui_geometry = self.gui.get_geometry()
             self.move(gui_geometry[0]+self.gui.SQUARE_SIZE*gui_geometry[2]+60,gui_geometry[1]-30)
     
     def refresh(self):
-        player_characters = self.player.get_characters()
-        ai_characters = self.ai.get_characters()
+        blue_characters = self.blue.get_characters()
+        red_characters = self.red.get_characters()
         self.empty()
         i = 0
-        for char in player_characters:
+        for char in blue_characters:
             label = QLabel()
             image = ImageInfo(char,self)
             self.grid.addWidget(image,0,i)
@@ -52,7 +52,7 @@ class Infowindow(QWidget):
             i += 1
             
         i = 0
-        for char in ai_characters:
+        for char in red_characters:
             label = QLabel()
             image = ImageInfo(char,self)
             self.grid.addWidget(image,2,i)
