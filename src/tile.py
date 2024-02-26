@@ -48,16 +48,10 @@ class Tile:
     def get_color_skill(self):
         return self.color_skill
     
-    def get_gui_tile(self):
-        return self.gui_tile
-    
     def set_object(self, object):
         if self.object != None:
             raise IllegalMoveException("Tile is already occupied!")
         self.object = object
-        
-    def set_gui_tile(self,gui):
-        self.gui_tile = gui
         
     def remove_object(self):
         self.object = None

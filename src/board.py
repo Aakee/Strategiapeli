@@ -60,10 +60,10 @@ class Board:
         @param coordinates: Coordinates in format (x,y)
         '''
         tile = self.get_tile(coordinates)
-        gui_tile = tile.get_gui_tile()
+        #gui_tile = tile.get_gui_tile()
         tile.remove_object()
-        if gui_tile != None: # If playing without gui, or testing
-            gui_tile.set_image(None,True)
+        #if gui_tile != None: # If playing without gui, or testing
+        #    gui_tile.set_image(None,True)
     
     
     

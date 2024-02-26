@@ -102,24 +102,28 @@ class GUI(QMainWindow):
         '''
         self.scene = QGraphicsScene()
         self.scene.setSceneRect(0, 0, self.game.get_board().get_width()*GUI.SQUARE_SIZE, self.game.get_board().get_height()*GUI.SQUARE_SIZE)
-        #self.grid.addWidget(self.scene,0,0)
                 
         self.view = QtWidgets.QGraphicsView(self.scene, self)
         self.view.adjustSize()
         self.view.show()
-        
-        #self.horizontal.addWidget(self.view)
+
+        self.view.gui_tiles = []
         self.grid.addWidget(self.view,0,0)
-            
+
         for y in range(self.game.get_board().get_height()):
+            row = []
             for x in range(self.game.get_board().get_width()):
                 tile = self.game.get_board().get_tile((x,y))
-                color_line = QColor(20,20,20)
-                color = tile.get_color()
+                #color_line = QColor(20,20,20)
+                #color = tile.get_color()
                 square = Square(x, y, GUI.SQUARE_SIZE, GUI.SQUARE_SIZE,tile,self)
-                square.setBrush(color)
-                square.setPen(color_line)
+                #square.setBrush(color)
+                #square.setPen(color_line)
                 self.scene.addItem(square)
+                row.append(square)
+            self.view.gui_tiles.append(row)
+
+        self.refresh_map()
 
                 
     def char_info(self):
@@ -190,8 +194,11 @@ class GUI(QMainWindow):
             for x in range(self.game.get_board().get_width()):
                 tile = self.game.get_board().get_tile((x,y))
                 color = tile.get_color()
-                square = tile.get_gui_tile()
+                #square = tile.get_gui_tile()
+                square = self.view.gui_tiles[y][x]
                 square.setBrush(color)
+
+                square.destroy_image()
                                 
                 if tile.get_object() != None:
                     empty_square = True
@@ -200,7 +207,7 @@ class GUI(QMainWindow):
                     if char.get_carrying():
                         photo = Image(char.get_carrying())
                         pm = self.scene.addPixmap(photo)
-                        tile.get_gui_tile().set_image(pm,True)
+                        #tile.get_gui_tile().set_image(pm,True)
                         pm.setPos(x*GUI.SQUARE_SIZE+1,y*GUI.SQUARE_SIZE+1)
                         empty_square = False
                     
@@ -208,7 +215,8 @@ class GUI(QMainWindow):
                     
                     pm = self.scene.addPixmap(photo)
                     
-                    tile.get_gui_tile().set_image(pm, empty_square)
+                    #tile.get_gui_tile().set_image(pm, empty_square)
+                    square.set_image(pm, empty_square)
                     pm.setPos(x*GUI.SQUARE_SIZE+1,y*GUI.SQUARE_SIZE+1)
         
                     
@@ -220,7 +228,8 @@ class GUI(QMainWindow):
         '''
         for coordinates in squares:
             tile = self.game.get_board().get_tile(coordinates)
-            gui_tile = tile.get_gui_tile()
+            gui_tile = self.view.gui_tiles[coordinates[1]][coordinates[0]]
+            #gui_tile = tile.get_gui_tile()
             color = tile.get_color2()
             gui_tile.setBrush(color)
 
@@ -233,7 +242,8 @@ class GUI(QMainWindow):
         '''
         for coordinates in squares:
             tile = self.game.get_board().get_tile(coordinates)
-            gui_tile = tile.get_gui_tile()
+            #gui_tile = tile.get_gui_tile()
+            gui_tile = self.view.gui_tiles[coordinates[1]][coordinates[0]]
             color = tile.get_color_attack()
             gui_tile.setBrush(color)
             
@@ -245,7 +255,8 @@ class GUI(QMainWindow):
         '''
         for coordinates in squares:
             tile = self.game.get_board().get_tile(coordinates)
-            gui_tile = tile.get_gui_tile()
+            #gui_tile = tile.get_gui_tile()
+            gui_tile = self.view.gui_tiles[coordinates[1]][coordinates[0]]
             color = tile.get_color_skill()
             gui_tile.setBrush(color)
             
@@ -441,6 +452,7 @@ class GUI(QMainWindow):
         '''
         Method prints needed information into the console and then tries to change the turn between players.
         '''
+        # Return if the current player is not ready
         if not self.game.is_player_ready():
             return
         
@@ -545,11 +557,7 @@ class Square(QGraphicsRectItem):
         super().__init__(x*GUI.SQUARE_SIZE,y*GUI.SQUARE_SIZE,width,height)
         self.x = x
         self.y = y
-        self.tile = tile
         self.gui = gui
-        self.game = gui.get_game()
-        self.tile.set_gui_tile(self)
-        self.buffer = 0
         self.image = []   # List of the chars' images currently on square
         
         
@@ -558,7 +566,7 @@ class Square(QGraphicsRectItem):
         @param img: Pixmap of character currently trying to put on tile.
         @param empty_square: True if all previous pixmaps are removed from tile, False if theyt are left there
         '''
-        if self.image != [] and empty_square:
+        if len(self.image) > 0 and empty_square:
             scene = self.gui.get_scene()
             for image in self.image:
                 scene.removeItem(image)
@@ -577,8 +585,9 @@ class Square(QGraphicsRectItem):
 
 
     def mousePressEvent(self, e):
-
+        '''
+        Method is called when this square is clicked. The method in turn calls the GUI.map_clicked method.
+        '''
         if e.buttons() != Qt.LeftButton:
             return
-
         self.gui.map_clicked(self.x,self.y)
