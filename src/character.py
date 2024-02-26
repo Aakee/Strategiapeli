@@ -608,8 +608,8 @@ class TestChar(Character):
         self.init_range = self.range
         self.skills = [skill.Ghost(self), skill.RaiseDef(self)]
             
-        self.attacks.append(attack.Melee((self, (1,1),1, 100,'Swordstrike', 'Attack with your sword. Physical attack.')))
-        self.attacks.append(attack.Melee((self, (1,2),0.5, 100,'Javelin', 'Throw your javelin from afar. Physical attack.')))
+        self.attacks.append(attack.Swordstrike(self))
+        self.attacks.append(attack.Javelin(self))
         # (user, range, power, accuracy, name, flavor)
     def new(self,owner):
         return TestChar(self.game,owner)
@@ -636,12 +636,9 @@ class Knight(Character):
         self.init_range = self.range
         self.skills = [skill.RaiseDef(self), skill.Bodyguard(self)]
             
-        self.attacks.append(attack.Melee((self, (1,1),1, 100,'Swordstrike', 'Attack with your sword.')))
-        self.attacks.append(attack.Melee((self, (1,1),1.5, 75,'Axe', 'Attack with your axe')))
-        
-        def new(self,owner):
-            return TestChar(self.game,owner)
-        
+        self.attacks.append(attack.Swordstrike(self))
+        self.attacks.append(attack.Axe(self))
+
         
 class Archer(Character):
     '''
@@ -664,10 +661,11 @@ class Archer(Character):
         self.init_range = self.range
         self.skills = [skill.Sniper(self)]
 
-        self.attacks.append(attack.Melee((self, (1,2),1.5, 100,'Bow', 'Shoot with your bow. Range: 2.')))
-        self.attacks.append(attack.Melee((self, (1,3),1, 80,'Longbow', 'Weaker and worse accuracy than the bow, but better range. Range: 3.')))
-        self.attacks.append(attack.Melee((self, (1,4),1, 50,'Snipe', 'Snipe from afar with low accuracy. Range: 4.')))
+        self.attacks.append(attack.Bow(self))
+        self.attacks.append(attack.Longbow(self))
+        self.attacks.append(attack.Snipe(self))
         
+
 class Mage(Character):
     '''
     A class which attacks with magic.
@@ -689,8 +687,8 @@ class Mage(Character):
         self.init_range = self.range
         self.skills = [skill.Camouflage(self)]
             
-        self.attacks.append(attack.Magic((self, (1,2),1.5, 95,'Fire', 'Cast a somewhat powerful fire. Range: 2.')))
-        self.attacks.append(attack.Magic((self, (1,4),0.5, 90,'Thunder', 'Cast a weak thunder. Range: 4.')))
+        self.attacks.append(attack.Fire(self))
+        self.attacks.append(attack.Thunder(self))
 
 
 class Cleric(Character):
@@ -714,8 +712,8 @@ class Cleric(Character):
         self.init_range = self.range
         self.skills = [skill.Heal(self), skill.Camouflage(self), skill.Rest(self), skill.RaiseRng(self)]
             
-        self.attacks.append(attack.Magic((self, (1,2),0.4, 100,'Wind', 'Cast a somewhat weak wind to attack. Range: 2.')))
-        self.attacks.append(attack.Melee((self, (1,1), 1, 100, 'Knife', 'Attack an enemy with a quick slash from your knife.')))
+        self.attacks.append(attack.Wind(self))
+        self.attacks.append(attack.Knife(self))
         
         
 class Assassin(Character):
@@ -739,8 +737,8 @@ class Assassin(Character):
         self.init_range = self.range
         self.skills = [skill.Camouflage(self), skill.Sneak(self)]
             
-        self.attacks.append(attack.Melee((self, (1,1), 1.3, 100, 'Dagger', 'Attack an enemy with your dagger.')))
-        self.attacks.append(attack.Melee((self, (1,2), 0.8, 95, 'Throwing knife', 'Throw an enemy with your dagger.')))
+        self.attacks.append(attack.Dagger(self))
+        self.attacks.append(attack.ThrowingKnife(self))
         
 
 class Valkyrie(Character):
@@ -764,8 +762,8 @@ class Valkyrie(Character):
         self.init_range = self.range
         self.skills = [skill.Levitate(self), skill.Rest(self), skill.Wish(self)]
             
-        self.attacks.append(attack.Melee((self, (1,1), 1.2, 100, 'Lance', 'Hit an enemy with your lance.')))
-        self.attacks.append(attack.Magic((self, (1,2), 1.3, 90, 'Stormwind', 'Cast a somewhat powerful wind magic. Range: 2')))
+        self.attacks.append(attack.Lance(self))
+        self.attacks.append(attack.Stormwind(self))
         
     def get_path(self):
         if self.owner == self.game.get_red_player() and self.is_ready():

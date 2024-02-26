@@ -7,23 +7,25 @@ class Attack:
     An assistant class used by characters to store info of their attacks and to determine their damage output.
     '''
     
-    def __init__(self,data):
+    def __init__(self,user):
         '''
         @param data: Basic data of the attack in format (user, range, power, accuracy, name, flavor).
         '''
-        self.user = data[0]         # User of the attack
-        self.min_range = data[1][0] # Minumum range of the attack
-        self.max_range = data[1][1] # Maximum range of the attack
-        self.power = data[2]        # Basic power of the attack
-        self.accuracy = data[3]     # Accuracy in percents
-        self.name = data[4]         # Name of the attack
-        self.flavor = data[5]       # String that tells basic info of attack
-        self.type = None            # Tells the type of attack
-        self.target_enemy = True    # True if targets enemies, False if allies (Always True for attacks)
-        self.attack_type = None
-        self.defense_type = None
-        self.action_type = "a"      # For attack
+        # Most of these are placeholders and actually defined in subclasses.
+        self.user           = user          # User of the attack
+        self.min_range      = None          # Minumum range of the attack
+        self.max_range      = None          # Maximum range of the attack
+        self.power          = None          # Basic power of the attack
+        self.accuracy       = None          # Accuracy in percents
+        self.name           = ''            # Name of the attack
+        self.flavor         = ''            # String that tells basic info of attack
+        self.type           = None          # Tells the type of attack
+        self.target_enemy   = True          # True if targets enemies, False if allies (Always True for attacks)
+        self.attack_type    = None
+        self.defense_type   = None
+        self.action_type    = "a"           # 'a' for attack
         
+
     def calculate_damage(self, target):
         '''
         Method calculates the damage character would deal to 'target' with this attack. No actual damage will be done.
@@ -159,10 +161,180 @@ class Magic(Attack):
         Attack.__init__(self, data)
         self.attack_type = Stats.MAGIC
         self.defense_type = Stats.RESISTANCE
-        
 
-class Heal(Attack):
-    '''
-    Action heals character etc
-    '''
-    pass
+
+# Melee attacks
+
+class Swordstrike(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 1
+        self.power          = 1
+        self.accuracy       = 100
+        self.name           = 'Swordstrike'
+        self.flavor         = 'Attack with your sword. Physical attack.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Axe(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 1
+        self.power          = 1.5
+        self.accuracy       = 75
+        self.name           = 'Axe'
+        self.flavor         = 'Attack with your axe. Strong but can miss.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Knife(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 1
+        self.power          = 1
+        self.accuracy       = 100
+        self.name           = 'Knife'
+        self.flavor         = 'Attack an enemy with a quick slash from your knife.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Dagger(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 1
+        self.power          = 1.3
+        self.accuracy       = 100
+        self.name           = 'Dagger'
+        self.flavor         = 'Attack an enemy with your dagger.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Lance(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 1
+        self.power          = 1.2
+        self.accuracy       = 100
+        self.name           = 'Lance'
+        self.flavor         = 'Hit an enemy with your lance.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+
+# Ranged attacks
+        
+class Bow(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 2
+        self.power          = 1.5
+        self.accuracy       = 100
+        self.name           = 'Bow'
+        self.flavor         = 'Shoot with your bow. Range: 2.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Longbow(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 3
+        self.power          = 1
+        self.accuracy       = 80
+        self.name           = 'Longbow'
+        self.flavor         = 'Weaker and worse accuracy than the bow, but better range. Range: 3.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Snipe(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 4
+        self.power          = 1
+        self.accuracy       = 50
+        self.name           = 'Longbow'
+        self.flavor         = 'Snipe from afar with low accuracy. Range: 4.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class Javelin(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 2
+        self.power          = 0.5
+        self.accuracy       = 100
+        self.name           = 'Javelin'
+        self.flavor         = 'Throw your javelin from afar. Physical attack.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+class ThrowingKnife(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 2
+        self.power          = 0.8
+        self.accuracy       = 95
+        self.name           = 'Throwing knife'
+        self.flavor         = 'Throw an enemy with your dagger.'
+        self.attack_type    = Stats.ATTACK
+        self.defense_type   = Stats.DEFENSE
+
+
+# Magic attacks
+        
+class Fire(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 2
+        self.power          = 1.5
+        self.accuracy       = 95
+        self.name           = 'Fire'
+        self.flavor         = 'Cast a somewhat powerful fire. Range: 2.'
+        self.attack_type    = Stats.MAGIC
+        self.defense_type   = Stats.RESISTANCE
+
+class Thunder(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 4
+        self.power          = 0.5
+        self.accuracy       = 90
+        self.name           = 'Thunder'
+        self.flavor         = 'Cast a weak thunder. Range: 4.'
+        self.attack_type    = Stats.MAGIC
+        self.defense_type   = Stats.RESISTANCE
+
+class Wind(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 2
+        self.power          = 0.4
+        self.accuracy       = 100
+        self.name           = 'Wind'
+        self.flavor         = 'Cast a somewhat weak wind to attack. Range: 2.'
+        self.attack_type    = Stats.MAGIC
+        self.defense_type   = Stats.RESISTANCE
+
+class Stormwind(Attack):
+    def __init__(self,user):
+        Attack.__init__(self, user)
+        self.min_range      = 1
+        self.max_range      = 2
+        self.power          = 1.3
+        self.accuracy       = 90
+        self.name           = 'Stormwind'
+        self.flavor         = 'Cast a somewhat powerful wind magic. Range: 2'
+        self.attack_type    = Stats.MAGIC
+        self.defense_type   = Stats.RESISTANCE
