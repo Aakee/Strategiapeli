@@ -41,6 +41,11 @@ class Game:
         char.attack(skill, target_coordinates)
         char.set_ready()
 
+    def pass_character_turn(self, char):
+        if char.get_owner() != self.whose_turn or char.is_ready():
+            return
+        char.set_ready()
+
     def ai_make_turn(self):
         self.ai.make_turn()
 

@@ -1,7 +1,6 @@
 '''
 This file contains classes which are used to draw and update the map.
 '''
-import pathlib
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QGraphicsRectItem, QApplication, QMainWindow, QGraphicsScene, QAction, QFileDialog, QGridLayout
 from PyQt5.QtGui import QColor, QIcon, QPixmap
@@ -56,13 +55,11 @@ class GUI(QMainWindow):
         self.square_size = 50
         self.x = 10
         self.y = 35
-        self.buffer = False
-        self.game_ended = False
         app = QApplication(sys.argv)
         self.setWindowIcon(QIcon(configload.get_image('testchar_player.png')))
 
         self.action_storage = ActionStorage()
-        self.active = None
+        self.active_character = None
         
         self.setWindowTitle('Strategiapeli')
         self.infownd = Infowindow(self)
@@ -131,7 +128,7 @@ class GUI(QMainWindow):
         '''
         Method opens the action window for the currently active character.
         '''
-        char = self.active
+        char = self.active_character
         if char != None:
             if self.actionwnd is not None:
                 self.actionwnd.close()
@@ -309,18 +306,15 @@ class GUI(QMainWindow):
     def get_game(self):
         return self.game
     
-    def set_active(self,char):
-        if char != self.active:
-            self.active = char
+    def set_active_character(self,char):
+        if char != self.active_character:
+            self.active_character = char
             self.char_info()
-        if char == None:
-            try:
-                self.actionwnd.close()
-            except:
-                pass
+        if char is None and self.actionwnd is not None:
+            self.actionwnd.close()
         
-    def get_active(self):
-        return self.active
+    def get_active_character(self):
+        return self.active_character
     
     def set_actionwnd(self,wnd):
         if self.actionwnd != None:
@@ -402,7 +396,7 @@ class GUI(QMainWindow):
                 self.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
             else:
                 self.action_storage.set(char=clicked_char, type=ActionStorage.MOVE)
-                self.set_active(clicked_char)
+                self.set_active_character(clicked_char)
                 legal_squares = clicked_char.get_legal_squares()
                 self.recolor_map_move(legal_squares)
                 self.statusBar().showMessage('Valitse ruutu.')
@@ -431,73 +425,6 @@ class GUI(QMainWindow):
         # Refresh the infowindow in any case
         self.infownd.refresh()
 
-        return
-
-                
-        # There are no character moving or attacking
-        if self.action_storage.type == ActionStorage.NONE:
-
-            char = self.get_game().get_board().get_piece((x,y))
-            if char is None:
-                return
-                
-            if char.get_owner() == self.game.get_human() and not char.is_ready():
-                self.action_storage.set(char=char, type=ActionStorage.MOVE)
-                self.set_active(char)
-                legal_squares = char.get_legal_squares()
-                self.recolor_map_move(legal_squares)
-                self.statusBar().showMessage('Valitse ruutu.')
-                
-            elif char.get_owner() == self.game.get_human():
-                self.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
-                    
-            else:
-                self.statusBar().showMessage('Valitse hahmo.')
-                self.refresh_map()
-        
-        # A character is moving            
-        elif self.action_storage.type == ActionStorage.MOVE:
-            char = self.action_storage.char
-            legal_squares = char.get_legal_squares()
-            other_char = self.get_game().get_board().get_piece((x,y))
-            if other_char != None and other_char.get_owner() == self.get_game().get_human() and not char.is_ready():
-                self.refresh_map()
-                self.action_storage.set(char=other_char, type=ActionStorage.MOVE)
-                self.set_active(other_char)
-                legal_squares = other_char.get_legal_squares()
-                self.recolor_map_move(legal_squares)
-                self.statusBar().showMessage('Valitse ruutu.')                
-            else:    
-                try:
-                    #self.game.get_board().move_char(char,(x,y))
-                    self.game.move_character(char,(x,y))
-                    self.refresh_map()
-                    
-                except IllegalMoveException:
-                    self.statusBar().showMessage('Et voi siirtaa hahmoa siihen!')   
-                    self.refresh_map()
-                finally:
-                    self.action_storage.reset()
-                    self.refresh_map()
-        
-        # A character is attacking or using a skill
-        else:
-            buffer = self.get_buffer()
-            if buffer:
-                return
-            try:
-                char, attack = self.action_storage.char, self.action_storage.attack
-                #char.attack(attack,(x,y))
-                self.game.use_attack(char,(x,y),attack)
-                self.statusBar().showMessage('Valitse hahmo.')
-            except IllegalMoveException:
-                self.statusBar().showMessage('Et voi hyokata siihen!')
-            finally:
-                self.action_storage.reset()
-                self.set_active(None)
-                self.refresh_map()
-
-        self.infownd.refresh()
 
 
     def new_turn(self):
@@ -523,6 +450,7 @@ class GUI(QMainWindow):
         if self.game.change_turn():
             self.refresh_map()
 
+
     
     def set_action_return(self,contents,char):
         '''
@@ -530,8 +458,8 @@ class GUI(QMainWindow):
         @param contents: tuple in form of (actions name, actions type). Type is either "a" for attack or "s" for skill.
         '''
         self.refresh_map()
-        self.return_cont = contents[0]
-        self.return_type = contents[1]
+        self.return_cont, self.return_type = contents[0], contents[1]
+
         if self.return_type == "a":
             attacks = char.get_attacks()
             for attack in attacks:
@@ -540,9 +468,7 @@ class GUI(QMainWindow):
             
             attack = self.return_cont
             range = attack.get_range()
-            min_range = range[0]
-            max_range = range[1]
-            squares = []
+            min_range, max_range = range[0], range[1]
             squares = char.define_attack_targets(char.get_square(),max_range,attack.targets_enemy())
                
             if len(squares) == 0:
@@ -554,7 +480,7 @@ class GUI(QMainWindow):
             self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
             self.statusBar().showMessage('Valitse kohde.')
         
-        
+
         elif self.return_type == "s":
             skills = char.get_full_skills()
             for skill in skills:
@@ -579,12 +505,21 @@ class GUI(QMainWindow):
             self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
             self.statusBar().showMessage('Valitse kohde.')
                          
+
+        elif self.return_type == "p":
+            self.game.pass_character_turn(char)
+            self.set_active_character(None)
+            self.refresh_map()
+        
+        
         else:
             self.action_storage.reset()
-            self.set_active(None)
+            self.set_active_character(None)
             self.refresh_map()
-            self.get_infownd().refresh()
+        
+        self.get_infownd().refresh()
             
+
                     
                 
                 

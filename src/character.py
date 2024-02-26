@@ -153,8 +153,6 @@ class Character:
     
     def set_ready(self):
         self.ready = True
-        if self.game.get_gui():
-            self.game.get_gui().set_active(None)
         
     def set_not_ready(self):
         self.init_square = None

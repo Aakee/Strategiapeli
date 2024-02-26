@@ -71,31 +71,17 @@ class Action(QWidget):
         button = QPushButton("Pass")
         button.setToolTip("Lopeta vuoro")
         self.grid.addWidget(button,i,3)
-        button.clicked.connect(self.return_pass)
+        button.clicked.connect(partial(self.return_pass, str(button.text())))
         i += 1
             
-        #button = QPushButton("Cancel")
-        #button.setToolTip("Peruuta")
-        #self.grid.addWidget(button,i,3)
-        #button.clicked.connect(self.return_cancel)
         self.show()
            
             
     def return_attack(self,name):
-        contents = (name, "a")
-        self.gui.set_action_return(contents,self.char)
-        #self.done(1)
+        self.gui.set_action_return((name, "a"), self.char)
 
     def return_skill(self,name):
-        self.gui.set_action_return((name,"s"),self.char)
-        #self.done(1)
-        
-    #def return_cancel(self):
-        #self.gui.set_action_return((None,None),self.char)
-        #self.done(1)
-        
-    def return_pass(self):
-        self.char.set_ready()
-        self.gui.set_action_return((None,None),self.char)
-                
-        
+        self.gui.set_action_return((name, "s"), self.char)
+
+    def return_pass(self, name):
+        self.gui.set_action_return((name, "p"), self.char)

@@ -11,7 +11,7 @@ def main():
     '''
     Launches the GUI.
     '''
-    #global app
+    global app
     app = QApplication(sys.argv)
     gui = GUI()
 
