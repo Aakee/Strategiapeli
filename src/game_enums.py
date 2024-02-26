@@ -75,3 +75,27 @@ class SkillType(Enum):
     RAISERNG    = 34   # Character raises range for nearby allies until start of next turn
     WISH        = 39   # Another character can move second time
     
+class AttackType(Enum):
+    '''
+    Different attacks
+    '''
+    # Melee
+    SWORDSTRIKE = 10
+    AXE         = 11
+    KNIFE       = 12
+    DAGGER      = 13
+    LANCE       = 14
+
+    # Ranged
+    BOW         = 30
+    LONGBOW     = 31
+    SNIPE       = 32
+    JAVELIN     = 33
+    THROWINGKNF = 34
+
+    # Magic
+    FIRE        = 50
+    THUNDER     = 51
+    WIND        = 52
+    STORMWIND   = 53
+

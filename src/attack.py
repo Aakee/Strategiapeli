@@ -1,5 +1,5 @@
 import random
-from game_enums import Stats
+from game_enums import AttackType, Stats
 from skill import Skill
 
 class Attack:
@@ -174,6 +174,7 @@ class Swordstrike(Attack):
         self.accuracy       = 100
         self.name           = 'Swordstrike'
         self.flavor         = 'Attack with your sword. Physical attack.'
+        self.type           = AttackType.SWORDSTRIKE
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -186,6 +187,7 @@ class Axe(Attack):
         self.accuracy       = 75
         self.name           = 'Axe'
         self.flavor         = 'Attack with your axe. Strong but can miss.'
+        self.type           = AttackType.AXE
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -198,6 +200,7 @@ class Knife(Attack):
         self.accuracy       = 100
         self.name           = 'Knife'
         self.flavor         = 'Attack an enemy with a quick slash from your knife.'
+        self.type           = AttackType.KNIFE
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -210,6 +213,7 @@ class Dagger(Attack):
         self.accuracy       = 100
         self.name           = 'Dagger'
         self.flavor         = 'Attack an enemy with your dagger.'
+        self.type           = AttackType.DAGGER
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -222,6 +226,7 @@ class Lance(Attack):
         self.accuracy       = 100
         self.name           = 'Lance'
         self.flavor         = 'Hit an enemy with your lance.'
+        self.type           = AttackType.LANCE
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -237,6 +242,7 @@ class Bow(Attack):
         self.accuracy       = 100
         self.name           = 'Bow'
         self.flavor         = 'Shoot with your bow. Range: 2.'
+        self.type           = AttackType.BOW
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -249,6 +255,7 @@ class Longbow(Attack):
         self.accuracy       = 80
         self.name           = 'Longbow'
         self.flavor         = 'Weaker and worse accuracy than the bow, but better range. Range: 3.'
+        self.type           = AttackType.LONGBOW
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -261,6 +268,7 @@ class Snipe(Attack):
         self.accuracy       = 50
         self.name           = 'Longbow'
         self.flavor         = 'Snipe from afar with low accuracy. Range: 4.'
+        self.type           = AttackType.SNIPE
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -273,6 +281,7 @@ class Javelin(Attack):
         self.accuracy       = 100
         self.name           = 'Javelin'
         self.flavor         = 'Throw your javelin from afar. Physical attack.'
+        self.type           = AttackType.JAVELIN
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -285,6 +294,7 @@ class ThrowingKnife(Attack):
         self.accuracy       = 95
         self.name           = 'Throwing knife'
         self.flavor         = 'Throw an enemy with your dagger.'
+        self.type           = AttackType.THROWINGKNF
         self.attack_type    = Stats.ATTACK
         self.defense_type   = Stats.DEFENSE
 
@@ -300,6 +310,7 @@ class Fire(Attack):
         self.accuracy       = 95
         self.name           = 'Fire'
         self.flavor         = 'Cast a somewhat powerful fire. Range: 2.'
+        self.type           = AttackType.FIRE
         self.attack_type    = Stats.MAGIC
         self.defense_type   = Stats.RESISTANCE
 
@@ -312,6 +323,7 @@ class Thunder(Attack):
         self.accuracy       = 90
         self.name           = 'Thunder'
         self.flavor         = 'Cast a weak thunder. Range: 4.'
+        self.type           = AttackType.THUNDER
         self.attack_type    = Stats.MAGIC
         self.defense_type   = Stats.RESISTANCE
 
@@ -324,6 +336,7 @@ class Wind(Attack):
         self.accuracy       = 100
         self.name           = 'Wind'
         self.flavor         = 'Cast a somewhat weak wind to attack. Range: 2.'
+        self.type           = AttackType.WIND
         self.attack_type    = Stats.MAGIC
         self.defense_type   = Stats.RESISTANCE
 
@@ -336,5 +349,6 @@ class Stormwind(Attack):
         self.accuracy       = 90
         self.name           = 'Stormwind'
         self.flavor         = 'Cast a somewhat powerful wind magic. Range: 2'
+        self.type           = AttackType.STORMWIND
         self.attack_type    = Stats.MAGIC
         self.defense_type   = Stats.RESISTANCE
