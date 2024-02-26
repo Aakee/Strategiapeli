@@ -22,7 +22,7 @@ class Infowindow(QWidget):
         
         self.game = parent.get_game()
         self.setWindowTitle('Info')
-        self.setWindowIcon(QIcon(configload.get_image('testchar_player.png' )))
+        self.setWindowIcon(QIcon(configload.get_image('testchar_red.png' )))
         if self.game != None:
             self.blue = self.game.get_blue_player()
             self.red = self.game.get_red_player()

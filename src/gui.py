@@ -58,7 +58,7 @@ class GUI(QMainWindow):
         self.x = 10
         self.y = 35
         app = QApplication(sys.argv)
-        self.setWindowIcon(QIcon(configload.get_image('testchar_player.png')))
+        self.setWindowIcon(QIcon(configload.get_image('testchar_blue.png')))
 
         self.action_storage = ActionStorage()
         self.active_character = None
