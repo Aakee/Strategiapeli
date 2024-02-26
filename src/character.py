@@ -224,11 +224,11 @@ class Character:
         if self.carried:
             filename += '_carry_'
         if self.ready:
-            filename += '_moven.png'
+            filename += '_grey.png'
         elif self.owner == self.game.get_blue_player():
-            filename += '_player.png'
+            filename += '_blue.png'
         elif self.owner == self.game.get_red_player():
-            filename += '_enemy.png'
+            filename += '_red.png'
         else:
             raise KeyError("Error with player's controller!")
         return configload.get_image(filename)
@@ -239,9 +239,9 @@ class Character:
         '''
         filename = self.name.lower()
         if self.owner == self.game.get_blue_player():
-            filename += '_player.png'
+            filename += '_blue.png'
         elif self.owner == self.game.get_red_player():
-            filename += '_enemy.png'
+            filename += '_red.png'
         else:
             raise KeyError("Error with player's controller!")
         return configload.get_image(filename)
@@ -769,6 +769,6 @@ class Valkyrie(Character):
         
     def get_path(self):
         if self.owner == self.game.get_red_player() and self.is_ready():
-            return configload.get_image('valkyrie_enemy_moven.png')
+            return configload.get_image('valkyrie_red_moven.png')
         return Character.get_path(self)
     
