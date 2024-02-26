@@ -277,7 +277,8 @@ class GUI(QMainWindow):
         if arg[0] != False:
             fname = arg
         else:
-            fname = QFileDialog.getOpenFileName(self, 'Open file','',"Text files (*.txt)")
+            directory = configload.getdir('savedata')
+            fname = QFileDialog.getOpenFileName(self, 'Open file', directory,"Text files (*.txt)")
             
         if fname[0] == '': #If canceled
             return
@@ -307,7 +308,8 @@ class GUI(QMainWindow):
             fname = arg
         try:
             if arg[0] == False:
-                fname = QFileDialog.getSaveFileName(self, 'Save file', '', "Text files (*.txt)")
+                directory = configload.getdir('savedata')
+                fname = QFileDialog.getSaveFileName(self, 'Save file', directory, "Text files (*.txt)")
             gameIO.save_game(self.game, fname[0])
             self.statusBar().showMessage('Tallentaminen onnistui!')
         except CorruptedSaveFileException:
