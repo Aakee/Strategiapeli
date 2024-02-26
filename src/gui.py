@@ -374,7 +374,10 @@ class GUI(QMainWindow):
             return
         
         if self.game.whose_turn != self.game.get_human():
-            self.game.ai.make_turn()
+            self.game.ai_make_turn()
+            self.refresh_map()
+            self.infownd.refresh()
+            return
 
                 
         # There are no character moving or attacking

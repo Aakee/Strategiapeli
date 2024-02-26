@@ -28,33 +28,41 @@ class Game:
         if char.get_owner() != self.whose_turn:
             return
         self.board.move_char(char, target_coordinates)
-        self.check_turn_change()
+        self.change_turn()
 
     def use_attack(self, char, target_coordinates, attack):
         if char.get_owner() != self.whose_turn:
             return
         char.attack(attack, target_coordinates)
         char.set_ready()
-        self.check_turn_change()
+        self.change_turn()
 
     def use_skill(self, char, target_coordinates, skill):
         if char.get_owner() != self.whose_turn:
             return
         char.attack(skill, target_coordinates)
         char.set_ready()
-        self.check_turn_change()
+        self.change_turn()
+
+    def ai_make_turn(self):
+        self.ai.make_turn()
+        self.change_turn()
 
     def end_turn(self):
         player = self.whose_turn
         player.end_turn()
-        self.check_turn_change()
+        self.change_turn()
 
-    def check_turn_change(self):
-        print(self.whose_turn.is_ready())
+    def change_turn(self):
         if self.whose_turn.is_ready():
             self.whose_turn.set_all_not_ready()
             self.whose_turn = self.human if self.whose_turn == self.ai else self.ai
             self.whose_turn.new_turn()
+
+    def is_player_ready(self):
+        if self.whose_turn.is_ready():
+            return True
+        return False
 
     def is_game_over(self):
         return not self.human.is_alive() or not self.ai.is_alive() or self.human.is_won() or self.ai.is_won()
