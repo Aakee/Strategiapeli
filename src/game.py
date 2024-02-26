@@ -5,6 +5,8 @@ Holds all vital information.
 from game_enums import PlayerColor
 import player
 from board import Board
+import game_ai
+from game_errors import IllegalMoveException
 
 class Game:
     
@@ -38,8 +40,37 @@ class Game:
         char.set_ready()
 
     def ai_make_turn(self):
-        if self.players[self.whose_turn].ai:
-            self.players[self.whose_turn].make_turn()
+        if self.players[self.whose_turn].is_ai():
+            
+            move = game_ai.get_next_move(self, self.whose_turn)
+            
+            # Move character
+            char = self.board.get_piece(move.source_square)
+            self.move_character(char, move.destination_square)
+
+            # Attack
+            if move.action_type == 'a':
+                # Find the attack from the character which matches the chosen one
+                attack = None
+                for att in char.attacks:
+                    if att.type == move.action_id:
+                        attack = att
+                        break
+                self.use_attack(char, move.target_square, attack)
+
+            # Skill
+            elif move.action_type == 's':
+                # Find the attack from the character which matches the chosen one
+                skill = None
+                for sk in char.skills:
+                    if sk.type == move.action_id:
+                        skill = sk
+                        break
+                self.use_skill(char, move.target_square, skill)
+
+            else:
+                char.set_ready()
+
 
     def end_turn(self):
         if not self.get_current_player().is_ai():
