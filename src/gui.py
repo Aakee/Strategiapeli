@@ -66,6 +66,7 @@ class GUI(QMainWindow):
         
         self.setWindowTitle('Strategiapeli')
         self.infownd = Infowindow(self)
+        self.actionwnd=None
         self.init_menu()
         
         self.load_file(configload.get_filepath('savedata','save.txt'))
@@ -122,23 +123,28 @@ class GUI(QMainWindow):
 
                 
     def char_info(self):
+        '''
+        Method opens the action window for the currently active character.
+        '''
         char = self.active
         if char != None:
-            try:
+            if self.actionwnd is not None:
                 self.actionwnd.close()
-            except:
-                pass
+
             self.actionwnd = Action(self,char)
-            #self.grid.addWidget(self.actionwnd,1,0)
-        pass
-                
+
+
     def empty(self):
         '''
         Method empties whole scenery.
         '''
         self.view.setParent(None)
-                
+
+
     def init_menu(self):
+        '''
+        Method creates the dropdown menus for the main window.
+        '''
         exitAction = QAction('&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit game')
@@ -193,8 +199,6 @@ class GUI(QMainWindow):
 
                     if char.get_carrying():
                         photo = Image(char.get_carrying())
-                        
-                        
                         pm = self.scene.addPixmap(photo)
                         tile.get_gui_tile().set_image(pm,True)
                         pm.setPos(x*GUI.SQUARE_SIZE+1,y*GUI.SQUARE_SIZE+1)
@@ -208,7 +212,7 @@ class GUI(QMainWindow):
                     pm.setPos(x*GUI.SQUARE_SIZE+1,y*GUI.SQUARE_SIZE+1)
         
                     
-    def recolor_map(self,squares):
+    def recolor_map_move(self,squares):
         '''
         Shows where character can move to.
         @param squares: List of squares in (x,y)-format.
@@ -219,10 +223,9 @@ class GUI(QMainWindow):
             gui_tile = tile.get_gui_tile()
             color = tile.get_color2()
             gui_tile.setBrush(color)
-        
-        self.char_info()
-                
-    def recolor_map_attacking(self,squares):
+
+
+    def recolor_map_attack(self,squares):
         '''
         Shows where character can attack to.
         @param squares: List of squares in (x,y)-format.
@@ -314,20 +317,7 @@ class GUI(QMainWindow):
         
     def get_actionwnd(self):
         return self.activewnd
-    
-    def set_moving(self,char):
-        self.moving = char
 
-    def get_moving(self):
-        return self.moving
-    
-    def set_attacking(self, char, attack):
-        self.attacking = char
-        self.attack = attack
-    
-    def get_attacking(self):
-        return self.attacking, self.attack
-    
     def get_scene(self):
         return self.scene
     
@@ -337,7 +327,7 @@ class GUI(QMainWindow):
     def set_all_ready(self):
         if self.game.whose_turn == self.game.human:
             self.game.get_human().end_turn()
-            self.end_turn()
+            self.new_turn()
     
     def new_infownd(self):
         self.infownd.close()
@@ -368,15 +358,16 @@ class GUI(QMainWindow):
         coordinates to this method.
         @param x,y: Coordinates of clicked square (in game coordinate system, not measured in pixels)
         '''
-        #self.end_turn()
-
         if self.game.is_game_over():
+            return
+        
+        if self.game.is_player_ready():
+            self.new_turn()
             return
         
         if self.game.whose_turn != self.game.get_human():
             self.game.ai_make_turn()
             self.refresh_map()
-            self.infownd.refresh()
             return
 
                 
@@ -391,7 +382,7 @@ class GUI(QMainWindow):
                 self.action_storage.set(char=char, type=ActionStorage.MOVE)
                 self.set_active(char)
                 legal_squares = char.get_legal_squares()
-                self.recolor_map(legal_squares)
+                self.recolor_map_move(legal_squares)
                 self.statusBar().showMessage('Valitse ruutu.')
                 
             elif char.get_owner() == self.game.get_human():
@@ -400,7 +391,6 @@ class GUI(QMainWindow):
             else:
                 self.statusBar().showMessage('Valitse hahmo.')
                 self.refresh_map()
-            self.get_infownd().refresh()
         
         # A character is moving            
         elif self.action_storage.type == ActionStorage.MOVE:
@@ -412,7 +402,7 @@ class GUI(QMainWindow):
                 self.action_storage.set(char=other_char, type=ActionStorage.MOVE)
                 self.set_active(other_char)
                 legal_squares = other_char.get_legal_squares()
-                self.recolor_map(legal_squares)
+                self.recolor_map_move(legal_squares)
                 self.statusBar().showMessage('Valitse ruutu.')                
             else:    
                 try:
@@ -426,7 +416,6 @@ class GUI(QMainWindow):
                 finally:
                     self.action_storage.reset()
                     self.refresh_map()
-                    self.get_infownd().refresh()
         
         # A character is attacking or using a skill
         else:
@@ -444,73 +433,32 @@ class GUI(QMainWindow):
                 self.action_storage.reset()
                 self.set_active(None)
                 self.refresh_map()
-                self.get_infownd().refresh()
-    
 
-    def end_turn(self):
+        self.infownd.refresh()
+
+
+    def new_turn(self):
         '''
-        Method is called every time player clicks on the map to check, whose turn it should be.
-        Method also declares the winner, if game has ended.
+        Method prints needed information into the console and then tries to change the turn between players.
         '''
-        return
-        if self.action_storage.type == ActionStorage.NONE:
+        if not self.game.is_player_ready():
+            return
+        
+        # Player is starting their turn
+        if self.game.whose_turn == self.game.get_ai():
+            print("\n\nPelaajan vuoro!\n")
+            self.statusBar().showMessage('Valitse hahmo.')
+            self.save_game(configload.get_filepath('savedata','backup.txt')) # Backup save each turn
+
+        # AI is starting their turn
+        if self.game.whose_turn == self.game.get_human():
+            print("\n\nTietokoneen vuoro!\n")
+            self.statusBar().showMessage('Tietokoneen vuoro... (Klikkaa karttaa edetaksesi)')
+
+        # Change turn
+        if self.game.change_turn():
             self.refresh_map()
-            self.infownd.refresh()
-            
-        if not self.game.get_ai().is_alive() or self.game.get_human().is_won():
-            self.statusBar().showMessage('Voitit pelin!')
-            print("\nVoitit pelin!")
-            self.game_ended = True
-            
-        elif not self.game.get_human().is_alive() or self.game.get_ai().is_won():
-            self.statusBar().showMessage('Havisit pelin!')
-            print("\nHavisit pelin!")
-            self.game_ended = True
-            
-            
-        elif self.game.whose_turn == self.game.get_human(): # Player's turn
-            
-            if self.game.get_human().is_ready(): # If player has already moven all their characters
-                self.refresh_map()
-                print("\n\nTietokoneen vuoro!\n")
-                self.game.get_ai().new_turn()
-                self.game.get_human().set_all_not_ready()
-                self.statusBar().showMessage('Tietokoneen vuoro... (Klikkaa karttaa edetaksesi)')
-                self.infownd.close()
-                self.infownd = Infowindow(self)
-                self.refresh_map()
-                self.infownd.refresh()
-                
-        else: # Computer's turn
-            if not self.game.get_ai().is_ready(): # If there are still pieces to move for ai
-                self.game.get_ai().make_turn()
-                self.refresh_map()
-                self.infownd.refresh()
-            
-            else: # If computer has moven all their characters
-                self.game.get_ai().set_all_not_ready()
-                print("\n\nPelaajan vuoro!\n")
-                    
-                self.game.get_human().new_turn()
-                self.infownd.empty()
-                self.infownd.close()
-                self.infownd = Infowindow(self)
-                self.statusBar().showMessage('Valitse hahmo.')
-                self.refresh_map()
-                self.infownd.refresh()
-                
-                if self.game.get_turns() > 0:
-                    print("Voitat {} vuoron paasta.\n".format(abs(self.game.get_turns())))
-                if self.game.get_turns() < 0:
-                    print("Haviat {} vuoron paasta. \n".format(abs(self.game.get_turns())))
-                
-                self.save_game(configload.get_filepath('savedata','backup.txt')) # Backup save each turn
-                
-                self.end_turn() # To check if game ended during computer's turn
-            
-            
-    def game_over(self):
-        return self.game_ended
+
     
     def set_action_return(self,contents,char):
         '''
@@ -538,7 +486,7 @@ class GUI(QMainWindow):
                 self.action_storage.reset()
                 return
             
-            self.recolor_map_attacking(squares)
+            self.recolor_map_attack(squares)
             self.action_storage.set(char=char, type=ActionStorage.ATTACK, attack=self.return_cont)
             self.statusBar().showMessage('Valitse kohde.')
         
@@ -616,7 +564,8 @@ class Square(QGraphicsRectItem):
                 scene.removeItem(image)
             self.image = []
         self.image.append(img)
-        
+
+
     def destroy_image(self):
         '''
         Destroys the pixmap on this tile. Used when a character moves or dies.
@@ -625,7 +574,8 @@ class Square(QGraphicsRectItem):
         for img in self.image:
             scene.removeItem(img)
         self.image = []
-        
+
+
     def mousePressEvent(self, e):
 
         if e.buttons() != Qt.LeftButton:
