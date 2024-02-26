@@ -25,18 +25,18 @@ class Game:
 
 
     def move_character(self, char, target_coordinates):
-        if char.get_owner() != self.whose_turn:
+        if char.get_owner() != self.whose_turn or char.is_ready():
             return
         self.board.move_char(char, target_coordinates)
 
     def use_attack(self, char, target_coordinates, attack):
-        if char.get_owner() != self.whose_turn:
+        if char.get_owner() != self.whose_turn or char.is_ready():
             return
         char.attack(attack, target_coordinates)
         char.set_ready()
 
     def use_skill(self, char, target_coordinates, skill):
-        if char.get_owner() != self.whose_turn:
+        if char.get_owner() != self.whose_turn or char.is_ready():
             return
         char.attack(skill, target_coordinates)
         char.set_ready()

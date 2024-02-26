@@ -83,6 +83,7 @@ class GUI(QMainWindow):
         self.game.set_gui(self)
         self.initUI()
         self.refresh_map()
+        self.infownd.close()
         self.infownd = Infowindow(self)
         self.setGeometry(self.x, self.y, GUI.SQUARE_SIZE*self.game.get_board().get_width()+50, GUI.SQUARE_SIZE*self.game.get_board().get_height()+90)
         
@@ -369,17 +370,68 @@ class GUI(QMainWindow):
         coordinates to this method.
         @param x,y: Coordinates of clicked square (in game coordinate system, not measured in pixels)
         '''
+        self.infownd.refresh()
+
+        # Return if winner is already determined
         if self.game.is_game_over():
             return
         
+        # Check if about to change turns, and do so if needed
         if self.game.is_player_ready():
             self.new_turn()
             return
         
+        # If it's AI's turn, set it to do its turn independently
         if self.game.whose_turn != self.game.get_human():
             self.game.ai_make_turn()
             self.refresh_map()
             return
+        
+        # Refresh map to remove all old highlightnings
+        self.refresh_map()
+
+        # Fetch the currently-set active character and what it is set to do
+        active_char = self.action_storage.char
+        clicked_char = self.get_game().get_board().get_piece((x,y))
+        clicked_char_owner = None if clicked_char is None else clicked_char.get_owner()
+
+        # If clicked own character and either character is moving or nothing is set: select this character to be moved
+        if self.action_storage.type in ( ActionStorage.NONE, ActionStorage.MOVE ) and clicked_char_owner == self.game.get_human():
+            if clicked_char.is_ready():
+                self.action_storage.reset()
+                self.statusBar().showMessage('Hahmo ei voi enaa liikkua!')
+            else:
+                self.action_storage.set(char=clicked_char, type=ActionStorage.MOVE)
+                self.set_active(clicked_char)
+                legal_squares = clicked_char.get_legal_squares()
+                self.recolor_map_move(legal_squares)
+                self.statusBar().showMessage('Valitse ruutu.')
+
+        else:
+            # Move the active character to the chosen tile
+            if self.action_storage.type == ActionStorage.MOVE:
+                try:
+                    self.game.move_character(active_char, (x,y))
+                except IllegalMoveException:
+                    self.statusBar().showMessage('Et voi siirtaa hahmoa siihen!')
+
+            # Attack with the active character and active attack to the chosen tile
+            elif self.action_storage.type == ActionStorage.ATTACK:
+                try:
+                    attack = self.action_storage.attack
+                    self.game.use_attack(active_char, (x,y), attack)
+                except IllegalMoveException:
+                    self.statusBar().showMessage('Et voi hyokata siihen!')
+
+            # Reset the active character and refresh the map
+            self.action_storage.reset()
+            self.refresh_map()
+            self.statusBar().showMessage('Valitse hahmo.')
+
+        # Refresh the infowindow in any case
+        self.infownd.refresh()
+
+        return
 
                 
         # There are no character moving or attacking

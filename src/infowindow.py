@@ -68,7 +68,10 @@ class Infowindow(QWidget):
             i += 1
             
         for popup in self.popups:
-            popup.refresh()
+            try:
+                popup.refresh()
+            except TypeError:
+                popup.close()
         self.show()
             
             
