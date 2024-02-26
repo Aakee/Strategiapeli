@@ -3,16 +3,15 @@ The source class of the game.
 Holds all vital information.
 '''
 from game_errors import IllegalMoveException
-from human import Human
-from ai import AI
+import player
 from board import Board
 
 class Game:
     
     def __init__(self):
         self.board      = Board()  # Board object
-        self.human      = Human()  # Human player
-        self.ai         = AI()     # Computer player
+        self.human      = player.create_new_player(ai_controlled=False)   # Human player
+        self.ai         = player.create_new_player(ai_controlled=True)    # Computer player
 
         self.capture    = True
         self.mode       = 'dm'

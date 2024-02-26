@@ -1,3 +1,5 @@
+import random
+
 class Player:
     
     def __init__(self):
@@ -7,8 +9,6 @@ class Player:
         self.lost = False   # Set to true if lost by some other condition than getting all characters killed
         self.vip = False    # Determines the type of game; if there's at least one vip, self.vip is True
         self.first = True   # True only on first turn.
-        
-                
         
     def is_alive(self):
         '''
@@ -57,36 +57,14 @@ class Player:
         - Only vip can seize goals
         '''
         self.vip = True
-        #self.game.set_vip()
     
     def new_turn(self):
         '''
         Initialized all characters for new turn.
         Also on first turn adds skills to eveyone if it is a vip game.
         '''
-        #if self.game.is_vip() and self.first:
-        #    for char in self.characters:
-        #        char.add_vip()
-             
         for char in self.characters:
             char.new_turn()
-            #tile = self.game.get_board().get_tile(char.get_square())
-            #if tile.get_type() == Tile.GOAL and self == self.game.get_human() and not self.game.is_vip():
-            #    self.won = True
-            #elif tile.get_type() == Tile.GOAL and self == self.game.get_human():
-            #    if char.get_type() == Character.VIP:
-            #        self.won = True
-            #    elif char.get_carrying() != None:
-            #        if char.get_carrying().get_type() == Character.VIP:
-            #            self.won = True
-                  
-        #if self.game.get_init_turns():
-        #    if (self == self.game.get_human() and self.game.get_init_turns() > 0) or (self == self.game.get_ai() and self.game.get_init_turns() < 0):
-        #        self.game.next_turn(self.first and self == self.game.get_human())
-        #        if self.game.get_turns() == 0:
-        #            self.won = True
-
-        self.first = False
 
         
     def end_turn(self):
@@ -104,3 +82,43 @@ class Player:
         '''
         for char in self.characters:
             char.set_not_ready()
+
+
+class Human(Player):
+    '''
+    Player controlled by a human player
+    '''
+    def __init__(self):
+        Player.__init__(self)
+        self.ai = False
+        
+
+class AI(Player):
+    '''
+    Player controlled by an AI
+    '''
+    def __init__(self):
+        Player.__init__(self)
+        self.ai = True
+        
+    def make_turn(self):
+        not_ready = []
+        for char in self.characters:
+            if not char.is_ready():
+                not_ready.append(char)
+                
+        size = len(not_ready)
+        next = random.randint(0,size-1)
+        char = not_ready[next]
+        char.ai_make_turn()
+
+
+def create_new_player(ai_controlled):
+    '''
+    Creates and returns a Player character based on whether a player or AI controls it.
+    @param player_controlled: True if a human controls the player, False if it is controlled by AI
+    '''
+    if ai_controlled:
+        return Human()
+    else:
+        return AI()
