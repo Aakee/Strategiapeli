@@ -7,6 +7,7 @@ import player
 from board import Board
 import game_ai
 from game_errors import IllegalMoveException
+import copy
 
 class Game:
     
@@ -41,35 +42,9 @@ class Game:
 
     def ai_make_turn(self):
         if self.players[self.whose_turn].is_ai():
-            
-            move = game_ai.get_next_move(self, self.whose_turn)
-            
-            # Move character
-            char = self.board.get_piece(move.source_square)
-            self.move_character(char, move.destination_square)
-
-            # Attack
-            if move.action_type == 'a':
-                # Find the attack from the character which matches the chosen one
-                attack = None
-                for att in char.attacks:
-                    if att.type == move.action_id:
-                        attack = att
-                        break
-                self.use_attack(char, move.target_square, attack)
-
-            # Skill
-            elif move.action_type == 's':
-                # Find the attack from the character which matches the chosen one
-                skill = None
-                for sk in char.skills:
-                    if sk.type == move.action_id:
-                        skill = sk
-                        break
-                self.use_skill(char, move.target_square, skill)
-
-            else:
-                char.set_ready()
+            game_copy = copy.deepcopy(self)
+            move = game_ai.get_next_move(game_copy, self.whose_turn)
+            self.apply_move(move)
 
     def apply_move(self, move):
             
@@ -86,7 +61,7 @@ class Game:
         # Skill
         elif move.action_type == 's':
             # Find the attack from the character which matches the chosen one
-            skill = char.get_skill_by_id(move.skill_id)
+            skill = char.get_skill_by_id(move.action_id)
             self.use_skill(char, move.target_square, skill)
 
         else:
@@ -127,14 +102,14 @@ class Game:
     
     def get_winner(self):
         if self.get_blue_player().is_won():
-            return 1
+            return PlayerColor.BLUE
         if self.get_red_player().is_won():
-            return -1
+            return PlayerColor.RED
         if not self.get_blue_player().is_alive():
-            return -1
+            return PlayerColor.RED
         if not self.get_red_player().is_alive():
-            return 1
-        return 0
+            return PlayerColor.BLUE
+        return None
 
     def set_board(self, board):
         self.board = board

@@ -13,6 +13,7 @@ from game_errors import IllegalMoveException, CorruptedMapDataException,\
 from infowindow import Infowindow
 from action import Action
 import gameIO
+from game_enums import PlayerColor
 
 class ActionStorage:
     '''
@@ -357,19 +358,19 @@ class GUI(QMainWindow):
         Declares the winner of the game if the game has ended.
         '''
         winner = self.game.get_winner()
-        if self.winner_declared or winner == 0:
+        if self.winner_declared or winner is None:
             return
         if self.nof_human_players == 1:
-            if winner == 1:
+            if (winner == PlayerColor.BLUE and not self.game.get_blue_player().is_ai()) or (winner == PlayerColor.RED and not self.game.get_red_player().is_ai()):
                 print("Voitit pelin!")
                 self.statusBar().showMessage('Voitit pelin!')
-            if winner == -1:
+            else:
                 print("Havisit pelin!")
                 self.statusBar().showMessage('Havisit pelin!')
         else:
-            if winner == 1:
+            if winner == PlayerColor.BLUE:
                 print("Sininen pelaaja voitti!")
-            if winner == -1:
+            if winner == PlayerColor.RED:
                 print("Punainen pelaaja voitti!")
             self.statusBar().showMessage('Peli ohi')
         self.winner_declared = True
