@@ -43,7 +43,8 @@ class Game:
     def ai_make_turn(self):
         if self.players[self.whose_turn].is_ai():
             game_copy = copy.deepcopy(self)
-            move = game_ai.get_next_move(game_copy, self.whose_turn)
+            move = game_ai.get_ai_move_2(game_copy, self.whose_turn)
+            print(game_ai.get_heuristic_board_value(game_copy, self.whose_turn))
             self.apply_move(move)
 
     def apply_move(self, move):
