@@ -71,6 +71,27 @@ class Game:
             else:
                 char.set_ready()
 
+    def apply_move(self, move):
+            
+        # Move character
+        char = self.board.get_piece(move.source_square)
+        self.move_character(char, move.destination_square)
+
+        # Attack
+        if move.action_type == 'a':
+            # Find the attack from the character which matches the chosen one
+            attack = char.get_attack_by_id(move.action_id)
+            self.use_attack(char, move.target_square, attack)
+
+        # Skill
+        elif move.action_type == 's':
+            # Find the attack from the character which matches the chosen one
+            skill = char.get_skill_by_id(move.skill_id)
+            self.use_skill(char, move.target_square, skill)
+
+        else:
+            char.set_ready()
+
 
     def end_turn(self):
         if not self.get_current_player().is_ai():

@@ -245,6 +245,26 @@ class Character:
         else:
             raise KeyError("Error with player's controller!")
         return configload.get_image(filename)
+    
+    def get_attack_by_id(self, attack_id):
+        ret = None
+        for att in self.attacks:
+            if att.type == attack_id:
+                ret = att
+                break
+        if ret is None:
+            raise ValueError
+        return ret
+    
+    def get_skill_by_id(self, skill_id):
+        ret = None
+        for sk in self.skills:
+            if sk.type == skill_id:
+                ret = sk
+                break
+        if ret is None:
+            raise ValueError
+        return ret
         
     def attack(self,attack,coordinates):
         '''
