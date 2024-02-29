@@ -102,9 +102,10 @@ class AI(Player):
     '''
     Player controlled by an AI
     '''
-    def __init__(self, color):
+    def __init__(self, color, ai_func):
         Player.__init__(self, color)
         self.ai = True
+        self.ai_func = ai_func
         
     def make_turn(self):
         not_ready = []
@@ -118,12 +119,12 @@ class AI(Player):
         char.ai_make_turn()
 
 
-def create_new_player(color,ai_controlled):
+def create_new_player(color,ai_controlled, ai_func=None):
     '''
     Creates and returns a Player character based on whether a player or AI controls it.
     @param player_controlled: True if a human controls the player, False if it is controlled by AI
     '''
     if ai_controlled:
-        return AI(color=color)
+        return AI(color=color, ai_func=ai_func)
     else:
         return Human(color=color)

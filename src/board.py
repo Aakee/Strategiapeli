@@ -82,7 +82,7 @@ class Board:
         return None
     
     
-    def move_char(self,src,dst):
+    def move_char(self,src,dst, verbose=True):
         '''
         Moves the piece from square src OR char src to square dst if able.
         Src can be either the actual object or coordinates it is in.
@@ -115,7 +115,8 @@ class Board:
             self.remove_object(coordinates)
         self.set_object(dst, char)
         
-        print("\n{} liikkui ruudusta ({},{}) ruutuun ({},{}).".format(char.get_name(),coordinates[0]+1,coordinates[1]+1,dst[0]+1,dst[1]+1))
+        if verbose:
+            print("\n{} liikkui ruudusta ({},{}) ruutuun ({},{}).".format(char.get_name(),coordinates[0]+1,coordinates[1]+1,dst[0]+1,dst[1]+1))
     
         
 

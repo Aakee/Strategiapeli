@@ -14,56 +14,55 @@ class Game:
     def __init__(self, blue_controlled_by_ai=True, red_controlled_by_ai=True):
         self.board      = Board()  # Board object
         self.players    = {  
-                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai),
-                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai)
+                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai, ai_func=game_ai.get_ai_move_2),
+                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai, ai_func=game_ai.get_ai_move_1)
                           }
         self.whose_turn = PlayerColor.BLUE
 
 
-    def move_character(self, char, target_coordinates):
+    def move_character(self, char, target_coordinates, verbose=True):
         if char.get_owner() != self.get_current_player() or char.is_ready():
             return
-        self.board.move_char(char, target_coordinates)
+        self.board.move_char(char, target_coordinates, verbose=verbose)
 
-    def use_attack(self, char, target_coordinates, attack):
+    def use_attack(self, char, target_coordinates, attack, verbose=True):
         if char.get_owner() != self.get_current_player() or char.is_ready():
             return
-        char.attack(attack, target_coordinates)
+        char.attack(attack, target_coordinates, verbose=verbose)
 
-    def use_skill(self, char, target_coordinates, skill):
+    def use_skill(self, char, target_coordinates, skill, verbose=True):
         if char.get_owner() != self.get_current_player() or char.is_ready():
             return
-        char.attack(skill, target_coordinates)
+        char.attack(skill, target_coordinates, verbose=verbose)
 
     def pass_character_turn(self, char):
         if char.get_owner() != self.get_current_player() or char.is_ready():
             return
         char.set_ready()
 
-    def ai_make_turn(self):
+    def ai_make_turn(self, verbose=True):
         if self.players[self.whose_turn].is_ai():
             game_copy = copy.deepcopy(self)
-            move = game_ai.get_ai_move_2(game_copy, self.whose_turn)
-            print(game_ai.get_heuristic_board_value(game_copy, self.whose_turn))
-            self.apply_move(move)
+            move = self.get_current_player().ai_func(game_copy, self.whose_turn)
+            self.apply_move(move, verbose=verbose)
 
-    def apply_move(self, move):
+    def apply_move(self, move, verbose=True):
             
         # Move character
         char = self.board.get_piece(move.source_square)
-        self.move_character(char, move.destination_square)
+        self.move_character(char, move.destination_square, verbose=verbose)
 
         # Attack
         if move.action_type == 'a':
             # Find the attack from the character which matches the chosen one
             attack = char.get_attack_by_id(move.action_id)
-            self.use_attack(char, move.target_square, attack)
+            self.use_attack(char, move.target_square, attack, verbose=verbose)
 
         # Skill
         elif move.action_type == 's':
             # Find the attack from the character which matches the chosen one
             skill = char.get_skill_by_id(move.action_id)
-            self.use_skill(char, move.target_square, skill)
+            self.use_skill(char, move.target_square, skill, verbose=verbose)
 
         else:
             char.set_ready()

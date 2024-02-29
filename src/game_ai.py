@@ -5,6 +5,7 @@ Module has functions for the AI to run.
 import random
 import skill
 from game_enums import CharacterClass, PlayerColor
+from game_errors import IllegalMoveException
 from move import Move
 
 import copy
@@ -205,14 +206,33 @@ def calculate_enemy_threat(char,square):
 # Scale: from -10 (very bad) to 10 (very good). 0 is neutral.
 BASE_VALUES = {
     CharacterClass.ARCHER   : 10,
-    CharacterClass.ASSASSIN : 10,
-    CharacterClass.CLERIC   : 40,
+    CharacterClass.ASSASSIN : 5,
+    CharacterClass.CLERIC   : 100,
     CharacterClass.KNIGHT   : 10,
     CharacterClass.MAGE     : 10,
     CharacterClass.VALKYRIE : 20,
     CharacterClass.TESTCHAR : 10,
 }
 
+PREFER_ALLY_COMPANY = {
+    CharacterClass.ARCHER   : 4,
+    CharacterClass.ASSASSIN : 1,
+    CharacterClass.CLERIC   : 10,
+    CharacterClass.KNIGHT   : 7,
+    CharacterClass.MAGE     : 5,
+    CharacterClass.VALKYRIE : 7,
+    CharacterClass.TESTCHAR : 5,
+}
+
+PREFER_ENEMY_COMPANY = {
+    CharacterClass.ARCHER   : 5,
+    CharacterClass.ASSASSIN : 9,
+    CharacterClass.CLERIC   : 0,
+    CharacterClass.KNIGHT   : 4,
+    CharacterClass.MAGE     : 5,
+    CharacterClass.VALKYRIE : 6,
+    CharacterClass.TESTCHAR : 5,
+}
 
 ADVANTAGES = {
     CharacterClass.TESTCHAR: {
@@ -281,7 +301,7 @@ ADVANTAGES = {
 }
 
 
-def get_heuristic_board_value(game, player_color):
+def get_heuristic_board_value(game, player_color, enemy_threat_board):
     '''
     Returns a heuristically determined value of how good a given board situation is to a player.
     '''
@@ -293,70 +313,65 @@ def get_heuristic_board_value(game, player_color):
         # Current player lost
         else:
             return -math.inf
+        
+    def distance_between_two_characters(first,second):
+        return  abs(first.get_square()[0]-second.get_square()[0]) + abs(first.get_square()[1]-second.get_square()[1] ) 
 
     player = game.get_player(player_color)
     enemy = game.get_blue_player() if player_color == PlayerColor.RED else game.get_red_player()
-    value = 0
 
-    enemy_threat_board = construct_enemy_threat_board(game, enemy)
+    nof_player_characters = len(player.get_characters())
+    nof_enemy_characters = len(enemy.get_characters())
+
+    value = 0
 
     # Base value for each character which is alive
     value += sum([BASE_VALUES[char.type] for char in player.get_characters()])
     value -= sum([BASE_VALUES[char.type] for char in enemy.get_characters()])
 
     # Points based on the current hp of the characters
-    value += sum([0.5*BASE_VALUES[char.type] * char.get_hp() / char.get_maxhp() for char in player.get_characters()])
-    value -= sum([0.5*BASE_VALUES[char.type] * char.get_hp() / char.get_maxhp() for char in enemy.get_characters()])
+    value += 0.5*sum([BASE_VALUES[char.type] * char.get_hp() / char.get_maxhp() for char in player.get_characters()])
+    value -= 0.5*sum([BASE_VALUES[char.type] * char.get_hp() / char.get_maxhp() for char in enemy.get_characters()])
 
     # For each character, -10 to +10 points based on how well it fares against remaining enemy characters
     for player_char, enemy_char in itertools.product(player.get_characters(), enemy.get_characters()):
-        value += ADVANTAGES[player_char.type][enemy_char.type] / len(enemy.get_characters())
-        value -= ADVANTAGES[enemy_char.type][player_char.type] / len(player.get_characters())
+        value += (nof_player_characters/nof_enemy_characters) * ADVANTAGES[player_char.type][enemy_char.type] / len(enemy.get_characters())
+        value -= (nof_enemy_characters/nof_player_characters) * ADVANTAGES[enemy_char.type][player_char.type] / len(player.get_characters())
 
     # For each char, drop the value if enemy can deal damage to this square
     for char in player.get_characters():
         prob_dmg = get_probable_enemy_damage(enemy_threat_board, char, char.get_square())
         max_dmg  = get_max_enemy_damage(enemy_threat_board, char, char.get_square())
-        value -= 0.3 * BASE_VALUES[char.type] * ( 1 - max(0, (char.get_hp() - prob_dmg) / char.get_maxhp()) )
+        value -= 0.1 * BASE_VALUES[char.type] * ( max(0, prob_dmg ) / char.get_maxhp() )
         if prob_dmg > char.get_hp():
             value -= 0.2 * BASE_VALUES[char.type]
         elif max_dmg > char.get_hp():
             value -= 0.1 * BASE_VALUES[char.type]
 
     # Prefer positions where characters are close to each other
-    median_distance_from_teammates = 0
+    '''
     if len(player.get_characters()) > 1:
         for char in player.get_characters():
+            mean_distance_from_teammates = 0
             for other_char in [ch for ch in player.get_characters() if ch != char]:
-                median_distance_from_teammates += ( abs(char.get_square()[0] - other_char.get_square()[0] ) + abs(char.get_square()[1] - other_char.get_square()[1] ) ) / (len(player.get_characters()) - 1)
-        median_distance_from_teammates = median_distance_from_teammates / len(player.get_characters())
-        value -= 0.2 * median_distance_from_teammates
+                mean_distance_from_teammates += ( abs(char.get_square()[0] - other_char.get_square()[0] ) + abs(char.get_square()[1] - other_char.get_square()[1] ) ) / (len(player.get_characters()) - 1)
+            value += 10*(PREFER_ALLY_COMPANY[char.type]/10) * (1/mean_distance_from_teammates) / len(player.get_characters())
+    '''
+    value -= sum([PREFER_ALLY_COMPANY[char.type]*distance_between_two_characters(char, second_char) / (nof_player_characters**2) for char in player.get_characters() for second_char in player.get_characters() ])
 
     # To avoid games where no player does anything, slightly favor positions where characters are closer to enemies
-    mean_distance_from_closest_enemy = 0
+    '''
     for char in player.get_characters():
-        closest_distance = math.inf
+        mean_distance_from_enemies = 0
         for enemy_char in enemy.get_characters():
-            closest_distance = min( closest_distance, abs(char.get_square()[0]-enemy_char.get_square()[0]) + abs(char.get_square()[1]-enemy_char.get_square()[1]) )
-        mean_distance_from_closest_enemy += closest_distance / len(player.get_characters())
-    value += 0.1 * mean_distance_from_closest_enemy
-
-    return value
-
-
-def get_next_move_2(game, player_color):
-    player = game.get_player(player_color)
-    enemy = game.get_blue_player() if player_color == PlayerColor.RED else game.get_red_player()
+            mean_distance_from_enemies += ( abs(char.get_square()[0] - enemy_char.get_square()[0] ) + abs(char.get_square()[1] - enemy_char.get_square()[1] ) ) / len(enemy.get_characters())
+        value += 5*(PREFER_ENEMY_COMPANY[char.type]/10) * (1/mean_distance_from_enemies) / len(player.get_characters())
+    '''
+    value -= (nof_player_characters/nof_enemy_characters) * sum([ PREFER_ENEMY_COMPANY[char.type]*distance_between_two_characters(char, enemy_char) / (nof_player_characters * nof_enemy_characters) for char in player.get_characters() for enemy_char in enemy.get_characters() ])
 
 
-class CandidateMove:
-    def __init__(self, char) -> None:
-        self.char = char
+    return value + random.gauss(0, 0.5)
 
-class PositioningStrategy:
-    SAFE        = 0     # Far away from enemies but close to allies
-    SCOUT       = 1     # Close to enemies but out of their reach
-    RISKY       = 2     # Attack without concerns of own safety
 
 
 def get_ai_move_2(game, player_color):
@@ -371,6 +386,7 @@ def get_ai_move_2(game, player_color):
     char = chars[0]
     possible_moves = []
     
+    '''
     # Just move
     for square in char.get_legal_squares():
         possible_moves.append( Move( char.get_square(), square, None, 'p', None ) )
@@ -384,19 +400,48 @@ def get_ai_move_2(game, player_color):
     for square, sk in itertools.product(char.get_legal_squares(), [sk for sk in char.skills if sk.type in skill.Skill.active_skills]):
         for skill_target in char.define_attack_targets(square, sk.get_range(), sk.targets_enemy()):
             possible_moves.append( Move( char.get_square(), square, skill_target, 's', sk.type ) )
+    '''
+    possible_moves.append(Move( char.get_square(), char.get_square(), None, 'p', None ))
+
+    for square in char.get_legal_squares():
+        activated_skills = [sk for sk in char.skills if sk.type in skill.Skill.active_skills]
+        skill_targets  = [(target_square, sk.type) for sk in activated_skills for target_square in char.define_attack_targets(square, sk.get_range(), sk.targets_enemy()) ]
+        attack_targets = [(target_square, att.type) for att in char.get_attacks() for target_square in char.define_attack_targets(square, att.get_range()[1], True) ]
+        
+        for skill_target, skill_type in skill_targets:
+            possible_moves.append( Move( char.get_square(), square, skill_target, 's', skill_type ) )
+        
+        for attack_target, attack_type in attack_targets:
+            possible_moves.append( Move( char.get_square(), square, attack_target, 'a', attack_type ) )
+        
+        if len(skill_targets) == 0 and len(attack_targets) == 0:
+            possible_moves.append( Move( char.get_square(), square, None, 'p', None ) )
+
+    copy_time   = datetime.timedelta()
+    apply_time  = datetime.timedelta()
+    heur_time   = datetime.timedelta()
 
     # Find best
-    best_move = None
+    enemy_threat_board = construct_enemy_threat_board(game, enemy)
+    best_move = possible_moves[0]
     best_value = -math.inf
+
     for move in possible_moves:
         game_copy = copy.deepcopy(game)
-        game_copy.apply_move(move)
-        value = get_heuristic_board_value(game_copy, player_color)
+        try:
+            apply_candidate_move(game_copy, move)
+        except IllegalMoveException:
+            continue
+        value = get_heuristic_board_value(game_copy, player_color, enemy_threat_board)
         move.value = value
+        print(move)
         if value > best_value:
             best_move = move
             best_value = value
 
+    #print(f"copy: {copy_time}, apply: {apply_time}, heur: {heur_time}")
+    print("Best:")
+    print(best_move)
     return best_move
 
 
@@ -429,3 +474,31 @@ def get_probable_enemy_damage(board, char, coordinates):
         if enemy_char not in char_attack or dmg > char_attack[enemy_char]:
             char_attack[enemy_char] = dmg
     return sum([dmg for key, dmg in char_attack.items()])
+
+
+def apply_candidate_move(game, move):
+    '''
+    Function behaves like game.apply_move, but deals average damage instead of random :D
+    '''
+            
+    # Move character
+    char = game.board.get_piece(move.source_square)
+    game.move_character(char, move.destination_square, verbose=False)
+
+    # Attack
+    if move.action_type == 'a':
+        # Find the attack from the character which matches the chosen one
+        attack = char.get_attack_by_id(move.action_id)
+        enemy_char = game.board.get_piece(move.target_square)
+        dmg = attack.calculate_probable_damage(enemy_char)
+        enemy_char.remove_hp(dmg)
+
+    # Skill
+    elif move.action_type == 's':
+        # Find the attack from the character which matches the chosen one
+        skill = char.get_skill_by_id(move.action_id)
+        game.use_skill(char, move.target_square, skill, verbose=False)
+
+    else:
+        char.set_ready()
+

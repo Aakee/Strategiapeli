@@ -26,7 +26,7 @@ class Attack:
         self.action_type    = "a"           # 'a' for attack
         
 
-    def calculate_damage(self, target):
+    def calculate_damage(self, target, verbose=True):
         '''
         Method calculates the damage character would deal to 'target' with this attack. No actual damage will be done.
         Method assumes that target is in range of attack (can be determined with method define_attack_targets)
@@ -39,8 +39,8 @@ class Attack:
         miss = random.randint(1,100)
         if miss > self.calculate_accuracy(target):
             damage = 0
-            
-            print("Hyokkays meni ohi...")
+            if verbose:
+                print("Hyokkays meni ohi...")
             
         return damage
     
@@ -98,7 +98,7 @@ class Attack:
         for skill in target.get_full_skills():
             if skill.get_type() in combat_skills:
                 relevant_skills.append(skill)
-                
+
         
         for skill in relevant_skills:
             damage = skill.define_damage(damage,self.user,target)

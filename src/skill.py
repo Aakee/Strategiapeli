@@ -66,6 +66,9 @@ class Skill:
     
     def get_value(self):    # For ai to determine how clever it is to use skill
         return 0
+    
+    def use(**kwargs):
+        return
         
         
 #from action import ConfirmSkill        
@@ -120,7 +123,7 @@ class Heal(Skill):
         self.target = True
         self.target_enemy = False
         
-    def use(self,coordinates):
+    def use(self,coordinates, verbose=True):
         stats = self.char.get_stats()
         mag = stats[Stats.MAGIC]
         heal = round(mag/2)
@@ -145,9 +148,9 @@ class Heal(Skill):
             if not wnd.exec_():
                 return
         
-        
-        print("{} kaytti kykya Heal hahmoon {}!".format(self.char.get_name(),target.get_name()))    
-        target.add_hp(heal)
+        if verbose:
+            print("{} kaytti kykya Heal hahmoon {}!".format(self.char.get_name(),target.get_name()))    
+        target.add_hp(heal, verbose=verbose)
         self.char.set_ready()
         
         
@@ -178,7 +181,7 @@ class RaiseDef(Skill):
         self.target = True
         self.target_enemy = False
         
-    def use(self,coordinates):
+    def use(self,coordinates, verbose=True):
         stats = {Stats.ATTACK: 0, Stats.DEFENSE: 4, Stats.MAGIC: 0,\
                        Stats.RESISTANCE: 3, Stats.SPEED: 0, Stats.EVASION: 0}
         all_squares = self.char.get_game().get_board().get_tiles_in_range(self.char.get_square(),self.range)
@@ -200,8 +203,8 @@ class RaiseDef(Skill):
                     char.modify_stats(stats,0)
                     
         self.char.set_ready()
-        
-        print("{} kaytti kykya Raise Defense! Lahella olevien puolulaisten puolustukset nousivat!".format(self.char.get_name()))
+        if verbose:
+            print("{} kaytti kykya Raise Defense! Lahella olevien puolulaisten puolustukset nousivat!".format(self.char.get_name()))
 
                     
     def get_value(self,coordinates):
@@ -240,7 +243,7 @@ class RaiseRng(Skill):
         self.target = True
         self.target_enemy = False
         
-    def use(self,coordinates):
+    def use(self,coordinates, verbose=True):
         stats = {Stats.ATTACK: 0, Stats.DEFENSE: 0, Stats.MAGIC: 0,\
                        Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0}
         all_squares = self.char.get_game().get_board().get_tiles_in_range(self.char.get_square(),self.range)
@@ -262,8 +265,8 @@ class RaiseRng(Skill):
                     char.modify_stats(stats,1)
                     
         self.char.set_ready()
-        
-        print("{} kaytti kykya Raise Range! Lahella olevien puolulaisten askeleet kasvoivat yhdella!".format(self.char.get_name()))
+        if verbose:
+            print("{} kaytti kykya Raise Range! Lahella olevien puolulaisten askeleet kasvoivat yhdella!".format(self.char.get_name()))
 
                     
     def get_value(self,coordinates):
@@ -328,9 +331,10 @@ class Rest(Skill):
         self.target = False
         self.gain = 2   # How much is regained each turn
         
-    def use(self):
+    def use(self, verbose=True):
         if self.char.get_hp() < self.char.get_maxhp(): # If hp is not already full
-            print("{} kaytti kykya Rest!".format(self.char.get_name()))
+            if verbose:
+                print("{} kaytti kykya Rest!".format(self.char.get_name()))
             if self.char.get_hp() + self.gain <= self.char.get_maxhp(): # If character can heal whole amount
                 self.char.add_hp(self.gain)
             else:   # If character can heal only a part of the self.gain
@@ -432,7 +436,7 @@ class Wish(Skill):
         self.target = True
         self.range = 2
         
-    def use(self,coordinates):
+    def use(self,coordinates, verbose=True):
         stats = {Stats.ATTACK: 1, Stats.DEFENSE: 1, Stats.MAGIC: 1,\
                        Stats.RESISTANCE: 1, Stats.SPEED: 0, Stats.EVASION: 0}
         range = 0
@@ -461,8 +465,8 @@ class Wish(Skill):
         target.set_not_ready()
         target.modify_stats(stats,range)
         self.char.set_ready()
-        
-        print("{} used Wish on {}!".format(self.char.get_name(), target.get_name()))
+        if verbose:
+            print("{} used Wish on {}!".format(self.char.get_name(), target.get_name()))
         
     def get_value(self,coordinates):
         target = self.char.get_game().get_board().get_piece(coordinates)

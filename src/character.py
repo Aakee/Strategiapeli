@@ -123,24 +123,26 @@ class Character:
     def get_maxhp(self):
         return self.maxhp
     
-    def add_hp(self, amount):
+    def add_hp(self, amount, verbose=True):
         self.hp += amount
-        print("{} paransi {} hp vahinkoa.".format(self.get_name(),amount))
+        if verbose:
+            print("{} paransi {} hp vahinkoa.".format(self.get_name(),amount))
         if self.hp > self.maxhp:
             self.hp = self.maxhp
             
-    def remove_hp(self,amount):
+    def remove_hp(self,amount, verbose=True):
         self.hp -= amount
-        print("{} otti {} hp vahinkoa.".format(self.get_name(),amount))
+        if verbose:
+            print("{} otti {} hp vahinkoa.".format(self.get_name(),amount))
         if self.hp <= 0:
-            self.die()
+            self.die(verbose=verbose)
             
-    def set_hp(self,hp):
+    def set_hp(self,hp, verbose=True):
         self.hp = hp
         if self.hp > self.maxhp:
             self.hp = self.maxhp
         if self.hp <= 0:
-            self.die()
+            self.die(verbose=verbose)
             
     def get_owner(self):
         return self.owner
@@ -266,14 +268,14 @@ class Character:
             raise ValueError
         return ret
         
-    def attack(self,attack,coordinates):
+    def attack(self,attack,coordinates, verbose=True):
         '''
         Character attacks to another square with attack.
         @param attack: attack that character is using
         @param coordinates: Coordinates character is trying to attack to
         '''
         if attack.get_action_type() == "s": # Skill
-            attack.use(coordinates)
+            attack.use(coordinates, verbose=verbose)
             return
         
         range = attack.get_range()
@@ -291,14 +293,15 @@ class Character:
             wnd = ConfirmAttack(self,attack,target)     
             if not wnd.exec_():
                 return
-            
-        print("{} hyokkasi hahmoon {} hyokkayksella {}!".format(self.get_name(),target.get_name(),attack.get_name()))
         
-        damage = int(attack.calculate_damage(target))
+        if verbose:
+            print("{} hyokkasi hahmoon {} hyokkayksella {}!".format(self.get_name(),target.get_name(),attack.get_name()))
+        
+        damage = int(attack.calculate_damage(target, verbose=verbose))
         
         #print("{} otti {} hp vahinkoa.".format(target.get_name(),damage))
         
-        self.deal_damage(target, damage) 
+        self.deal_damage(target, damage, verbose=verbose) 
         self.set_ready()
    
     
@@ -306,7 +309,7 @@ class Character:
         squares = self.board.legal_squares(self)
         return squares  
     
-    def die(self):
+    def die(self, verbose=True):
         if not self.carried:
             square = self.get_square()
             self.board.remove_object(square)
@@ -317,15 +320,16 @@ class Character:
             carrying = self.get_carrying()
             self.remove_carrying(square)
             carrying.get_stuck(square)
-        print("{} kuoli!".format(self.get_name()))
+        if verbose:
+            print("{} kuoli!".format(self.get_name()))
         
-    def deal_damage(self,other,amount):
+    def deal_damage(self,other,amount, verbose=True):
         '''
         Character deals damage to other character.
         Method doesn't check if character should be able to do so. It is checked
         in other methods.
         '''
-        other.remove_hp(amount)
+        other.remove_hp(amount, verbose=verbose)
         
     def define_attack_targets(self, tile, range, enemy):
         '''
