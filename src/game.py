@@ -15,7 +15,7 @@ class Game:
         self.board      = Board()  # Board object
         self.players    = {  
                            PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai, ai_func=game_ai.get_ai_move_2),
-                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai, ai_func=game_ai.get_ai_move_1)
+                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai, ai_func=game_ai.get_ai_move_3)
                           }
         self.whose_turn = PlayerColor.BLUE
 
