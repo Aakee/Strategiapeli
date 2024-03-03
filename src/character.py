@@ -30,7 +30,7 @@ class Character:
         self.maxhp = 0
         self.hp = 0
         self.stats = {Stats.ATTACK: 0, Stats.DEFENSE: 0, Stats.MAGIC: 0,\
-                       Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0}
+                       Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0, Stats.RANGE: 0}
         self.attacks = []
         self.skills = []
         self.legal_squares = None
@@ -46,6 +46,7 @@ class Character:
         at the beginning of turn.
         '''
         self.stats = dict(self.init_stats)
+        self.stats[Stats.RANGE] = self.init_range
         self.range = self.init_range
     
     def get_stats(self):
@@ -72,6 +73,7 @@ class Character:
         self.stats[Stats.RESISTANCE] += stat_enhanc[Stats.RESISTANCE]
         self.stats[Stats.SPEED] += stat_enhanc[Stats.SPEED]
         self.stats[Stats.EVASION] += stat_enhanc[Stats.EVASION]
+        self.stats[Stats.RANGE] += range_enhac
         self.range += range_enhac
           
     def get_range(self):
