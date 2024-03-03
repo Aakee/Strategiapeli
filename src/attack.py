@@ -266,7 +266,7 @@ class Snipe(Attack):
         self.max_range      = 4
         self.power          = 1
         self.accuracy       = 50
-        self.name           = 'Longbow'
+        self.name           = 'Snipe'
         self.flavor         = 'Snipe from afar with low accuracy. Range: 4.'
         self.type           = AttackType.SNIPE
         self.attack_type    = Stats.ATTACK
