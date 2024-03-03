@@ -5,17 +5,16 @@ Holds all vital information.
 from game_enums import PlayerColor
 import player
 from board import Board
-import game_ai
-from game_errors import IllegalMoveException
+import ai.game_ai as game_ai
 import copy
 
 class Game:
     
-    def __init__(self, blue_controlled_by_ai=True, red_controlled_by_ai=True):
+    def __init__(self, blue_controlled_by_ai=False, red_controlled_by_ai=True):
         self.board      = Board()  # Board object
         self.players    = {  
-                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai, ai_func=game_ai.get_ai_move_2),
-                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai, ai_func=game_ai.get_ai_move_3)
+                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai, ai_func=game_ai.get_ai_move_4),
+                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai, ai_func=game_ai.get_ai_move_4)
                           }
         self.whose_turn = PlayerColor.BLUE
 

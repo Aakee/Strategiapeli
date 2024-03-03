@@ -1,5 +1,6 @@
 from game_errors import IllegalMoveException
-import tile
+import threading
+import ai.distance
 
 class Board:
     
@@ -9,6 +10,7 @@ class Board:
         self.board = board
         self.height = len(self.board)
         self.width  = len(self.board[0])
+        self.distmap = ai.distance.DistanceMap(self)
     
     def get_height(self):
         return self.height
