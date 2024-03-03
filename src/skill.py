@@ -19,6 +19,9 @@ class Skill:
     
     # Skills with which characters can pass enemy players
     can_pass_enemies = [SkillType.GHOST, SkillType.SNEAK]
+
+    # Skills that affect movement in some way
+    movement_skills  = [SkillType.LEVITATE, SkillType.GHOST]
     
     # Skills which can be activated the same way as attacks
     active_skills = [SkillType.HEAL, SkillType.RAISEDEF, SkillType.RAISERNG, SkillType.WISH]
@@ -236,7 +239,7 @@ class RaiseRng(Skill):
         super().__init__(char)
         self.name = "Raise range"
         self.flavor = "Raises range by 1 for allies in range 3 until end of turn."
-        self.type = SkillType.HEAL
+        self.type = SkillType.RAISERNG
         #self.char = char
         self.range = 3
         self.affect_all = True
