@@ -11,7 +11,7 @@ class Value:
     def __init__(self, title=None, val=None) -> None:
         self.sections = []
         if not title is None and not val is None:
-            self.add_section(title=title, val=val)
+            self.add(title=title, val=val)
 
     def add(self,title,val):
         self.sections.append([title, val])
