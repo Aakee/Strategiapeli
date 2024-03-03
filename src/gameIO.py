@@ -66,8 +66,9 @@ def load_game(input_file):
                 if current_line.lower().strip() == "#char":
                     if not info_ready and current == "map":
                         raise CorruptedSaveFileException("Map info and data must be first!")
+                    if not map_ready:
+                        game.board.set_board(map)
                     map_ready = True
-                    game.board.set_board(map)
                     current = "char"
                     
 
