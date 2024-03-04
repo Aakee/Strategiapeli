@@ -13,6 +13,16 @@ import math
 import statistics
 import itertools
 
+# Priority: which characters move first
+PRIORITY = {
+    CharacterClass.CLERIC   : 3.5,
+    CharacterClass.KNIGHT   : 2,
+    CharacterClass.ASSASSIN : 3,
+    CharacterClass.ARCHER   : 3.1,
+    CharacterClass.MAGE     : 3.1,
+    CharacterClass.VALKYRIE : 4,
+    CharacterClass.TESTCHAR : 5,
+}
 
 # Some base value for each character class, from 1-10
 BASE_VALUES = {
@@ -125,20 +135,9 @@ def get_move(game, player_color) -> Move:
     chars = [char for char in player.get_characters() if not char.is_ready() ]
     if len(chars) == 0:
         return
-    
-    # Priority: which characters move first
-    priority = {
-        CharacterClass.CLERIC   : 3.5,
-        CharacterClass.KNIGHT   : 2,
-        CharacterClass.ASSASSIN : 3,
-        CharacterClass.ARCHER   : 3.1,
-        CharacterClass.MAGE     : 3.1,
-        CharacterClass.VALKYRIE : 4,
-        CharacterClass.TESTCHAR : 5,
-    }
 
     # Sort the characters by priority, but add a bit of randomness
-    chars.sort(key=lambda c: priority[c.type] + random.gauss(0,0.1))
+    chars.sort(key=lambda c: PRIORITY[c.type] + random.gauss(0,0.1))
     char = chars[0]
 
     # Calculate and return the best move for the chosen character
