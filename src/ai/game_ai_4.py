@@ -299,12 +299,12 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
             game_copy.use_skill(new_char, move.target_square, skill, verbose=False)
             value = get_heuristic_board_value(game_copy, new_char, player_color, player_threat_board, enemy_threat_board)
 
-    # Move back to original square
-    game.board.move_char(char, move.source_square, verbose=False)
-
     # If the value has not been calculated in the previous steps already
     if value is None:
         value = get_heuristic_board_value(game, char, player_color, player_threat_board, enemy_threat_board)
+
+    # Move back to original square and reset temporary stats
+    game.board.move_char(char, move.source_square, verbose=False)
     reset_tmp_stats(game)
     return value
 
