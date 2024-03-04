@@ -5,16 +5,19 @@ Holds all vital information.
 from game_enums import PlayerColor
 import player
 from board import Board
-import ai.game_ai as game_ai
+import ai.game_ai_1 as game_ai_1
+import ai.game_ai_2 as game_ai_2
+import ai.game_ai_3 as game_ai_3
+import ai.game_ai_4 as game_ai_4
 import copy
 
 class Game:
     
-    def __init__(self, blue_controlled_by_ai=False, red_controlled_by_ai=True):
+    def __init__(self, blue_controlled_by_ai=True, red_controlled_by_ai=True):
         self.board      = Board()  # Board object
         self.players    = {  
-                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai, ai_func=game_ai.get_ai_move_4),
-                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED, ai_controlled=red_controlled_by_ai, ai_func=game_ai.get_ai_move_4)
+                           PlayerColor.BLUE : player.create_new_player(color=PlayerColor.BLUE, ai_controlled=blue_controlled_by_ai, ai_func=game_ai_1.get_move),
+                            PlayerColor.RED : player.create_new_player(color=PlayerColor.RED,  ai_controlled=red_controlled_by_ai,  ai_func=game_ai_2.get_move)
                           }
         self.whose_turn = PlayerColor.BLUE
 
