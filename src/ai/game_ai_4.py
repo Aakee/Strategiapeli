@@ -210,7 +210,7 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
     - All changes to HP is made to char.tmp_hp rather than char.hp, meaning that characters cannot die even if their (tmp) hp would drop to zero
     - Heuristic value of the board state after the action is calculated and returned
     - All changes to stats and tmp_hp are reseted afterwards
-    The movement of the character is not reseted.
+    - Character is moved back to the original square afterwards.
     '''
     reset_tmp_stats(game)
     value = None
@@ -277,7 +277,7 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
             if target_char is None:
                 value = Value("Wish on empty square", -math.inf)
             elif target_char.get_owner().color != char.get_owner().color:
-                value =Value("Wish on enemy char", -math.inf)
+                value = Value("Wish on enemy char", -math.inf)
             elif not target_char.is_ready():
                 value = Value("Wish on non-moven char", -math.inf)
             elif SkillType.WISH in target_char.get_skills():
@@ -285,8 +285,10 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
             else:
                 target_char.modify_stats(stats, range_increase)
                 target_char.ready = False
+                original_square = target_char.get_square()
                 char.ready = True
                 value = get_best_move_for_character(game, target_char, player_color).value
+                game.board.move_char(target_char, original_square, verbose=False)
                 target_char.ready = True
                 char.ready = False
 
@@ -297,7 +299,9 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
             game_copy.use_skill(new_char, move.target_square, skill, verbose=False)
             value = get_heuristic_board_value(game_copy, new_char, player_color, player_threat_board, enemy_threat_board)
 
-    #game.board.move_char(char, move.source_square, verbose=False)
+    # Move back to original square
+    game.board.move_char(char, move.source_square, verbose=False)
+
     # If the value has not been calculated in the previous steps already
     if value is None:
         value = get_heuristic_board_value(game, char, player_color, player_threat_board, enemy_threat_board)
