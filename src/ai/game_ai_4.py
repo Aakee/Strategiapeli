@@ -10,6 +10,7 @@ from move import Move, Value
 
 import copy
 import math
+import random
 import statistics
 import itertools
 
@@ -214,6 +215,7 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
     '''
     reset_tmp_stats(game)
     value = None
+    bonus_value = 0
 
     # Move character
     game.board.move_char(char, move.destination_square, verbose=False)
@@ -221,11 +223,13 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
     # Attack
     if move.action_type == 'a':
         # Find the attack from the character which matches the chosen one
-        attack = char.get_attack_by_id(move.action_id)
-        enemy_char = game.board.get_piece(move.target_square)
-        dmg = attack.calculate_probable_damage(enemy_char)
-        #enemy_char.tmp_hp -= dmg
-        calculate_tmp_hp(enemy_char, -dmg)
+        attack      = char.get_attack_by_id(move.action_id)
+        target_char = game.board.get_piece(move.target_square)
+        dmg         = attack.calculate_max_damage(target_char)
+        accuracy    = attack.calculate_accuracy(target_char)
+        calculate_tmp_hp(target_char, -dmg)
+        bonus_value += accuracy/100
+        
 
     # Skill
     # A bit ugly, but hard-coded logic for each activated skill
@@ -235,7 +239,6 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
             target_char = game.board.get_piece(move.target_square)
             if target_char is None:
                 target_char = char
-            #target_char.tmp_hp += round(char.get_stats()[Stats.MAGIC] / 2)
             calculate_tmp_hp(target_char, round(char.get_stats()[Stats.MAGIC] / 2))
             if target_char.get_hp() == target_char.get_maxhp(): # Should not matter, but more clean to not heal characters with full hp
                 value = Value("Healing character with full HP", -math.inf)
@@ -302,6 +305,7 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
     # If the value has not been calculated in the previous steps already
     if value is None:
         value = get_heuristic_board_value(game, char, player_color, player_threat_board, enemy_threat_board)
+    value += ("Bonus value", bonus_value)
 
     # Move back to original square and reset temporary stats
     game.board.move_char(char, move.source_square, verbose=False)
@@ -343,11 +347,11 @@ def get_heuristic_board_value(game, moven_char, player_color, player_threat_boar
     value -= ( 'EnAdv', enemy_advantage )
 
     # Prefer positions where characters are close to each other
-    avedist_allies = statistics.mean([PREFER_ALLY_COMPANY[moven_char.type]*math.tanh(game.board.distmap.distance_between_characters(moven_char, other)/100) for other in player.get_characters() if other.tmp_hp > 0])
+    avedist_allies = statistics.mean([PREFER_ALLY_COMPANY[moven_char.type]*math.tanh( max(0, game.board.distmap.distance_between_characters(moven_char, other)-2) / (game.board.height+game.board.width) ) for other in player.get_characters() if other.tmp_hp > 0])
     value -= ('Allies close', 2*avedist_allies )
 
     # To avoid games where no player does anything, slightly favor positions where characters are closer to enemies
-    avedist_enemies = statistics.mean([ PREFER_ENEMY_COMPANY[moven_char.type]*math.tanh(game.board.distmap.distance_between_characters(moven_char, other) / 100 ) for other in enemy.get_characters() if other.tmp_hp > 0])
+    avedist_enemies = statistics.mean([ PREFER_ENEMY_COMPANY[moven_char.type]*math.tanh( max(0, game.board.distmap.distance_between_characters(moven_char, other)-4) / (game.board.height+game.board.width) ) for other in enemy.get_characters() if other.tmp_hp > 0])
     value -= ('Enemies close', max(3,(player_advantage/nof_player_characters)/(enemy_advantage/nof_enemy_characters))*avedist_enemies )
 
     # Very slightly prefer positions where characters total stats are higher (mainly to support using raise range and such)
@@ -502,7 +506,6 @@ def calculate_tmp_hp(char, tmp_hp_delta=0):
         char.tmp_hp += tmp_hp_delta
     char.tmp_hp  = min(char.tmp_hp, char.get_maxhp())
     char.tmp_hp  = max(char.tmp_hp, 0)
-    #return char.tmp_hp
 
 
 def get_winner(game):

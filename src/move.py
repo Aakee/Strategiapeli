@@ -17,7 +17,7 @@ class Value:
         self.sections.append([title, val])
 
     def get(self):
-        return round(sum([val for title, val in self.sections]), 2)
+        return round(sum([val for title, val in self.sections]), 5)
     
     def __iadd__(self, other):
         if type(other) is float:
