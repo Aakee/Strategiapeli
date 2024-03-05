@@ -177,6 +177,8 @@ def get_best_move_for_character(game, char, player_color):
         attack_targets = [(target_square, att.type) for att in char.get_attacks() for target_square in char.define_attack_targets(square, att.get_range()[1], True) ]
         for attack_target, attack_type in attack_targets:
             move = Move( char.get_square(), square, attack_target, 'a', attack_type )
+            if is_redundant_move(game, char, move):
+                continue
             move.value = apply_candidate_move(game, char, move, player.color, player_threat_board, enemy_threat_board)
             if move.value.get() > best_value:
                 best_move, best_value = move, move.value.get()
@@ -186,6 +188,8 @@ def get_best_move_for_character(game, char, player_color):
         skill_targets  = [(target_square, sk.type) for sk in activated_skills for target_square in char.define_attack_targets(square, sk.get_range(), sk.targets_enemy()) ]
         for skill_target, skill_type in skill_targets:
             move = Move( char.get_square(), square, skill_target, 's', skill_type )
+            if is_redundant_move(game, char, move):
+                continue
             move.value = apply_candidate_move(game, char, move, player.color, player_threat_board, enemy_threat_board)
             if move.value.get() > best_value:
                 best_move, best_value = move, move.value.get()
@@ -203,6 +207,48 @@ def get_best_move_for_character(game, char, player_color):
 
     # Return best move
     return best_move
+
+
+def is_redundant_move(game, char, move):
+    '''
+    Function determines if a move is redundant in such way that there is no point in doing that.
+    '''
+    # Attack: an attack is redundant if a) the maximum damage it could do is zero, or b) the user has strictly better
+    # attacks for the situation
+    if move.action_type == 'a':
+        attack      = char.get_attack_by_id(move.action_id)
+        target_char = game.board.get_piece(move.target_square)
+        max_dmg     = attack.calculate_max_damage(target_char)
+        accuracy    = attack.calculate_accuracy(target_char)
+        # Skip if can't deal any damage
+        if max_dmg <= 0:
+            return True
+        for other_attack in char.get_attacks():
+            if other_attack.type == attack.type:
+                continue
+            other_attack_max_range  = other_attack.get_range()[1]
+            if abs(char.get_square()[0]-target_char.get_square()[0]) + abs(char.get_square()[1]-target_char.get_square()[1]) > other_attack_max_range:
+                continue
+            other_attack_accuracy   = attack.calculate_accuracy(target_char)
+            other_attack_max_damage = attack.calculate_max_damage(target_char)
+            # Skip if there is another, strictly better attack for this situation
+            if other_attack_accuracy > accuracy and other_attack_max_damage >= max_dmg:
+                return True
+            if other_attack_accuracy >= accuracy and other_attack_max_damage > max_dmg:
+                return True
+            if other_attack_accuracy > accuracy and other_attack_max_damage >= target_char.tmp_hp:
+                return True
+            
+    
+    if move.action_type == 's':
+        if move.action_id == SkillType.HEAL:
+            target_char = game.board.get_piece(move.target_square)
+            if target_char is None:
+                target_char = char
+            if target_char.tmp_hp >= target_char.get_maxhp():
+                return True
+
+    return False
 
 
 def apply_candidate_move(game, char, move, player_color, player_threat_board, enemy_threat_board):
@@ -227,7 +273,9 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
         target_char = game.board.get_piece(move.target_square)
         dmg         = attack.calculate_max_damage(target_char)
         accuracy    = attack.calculate_accuracy(target_char)
-        calculate_tmp_hp(target_char, -dmg)
+        miss        = random.randint(1,100)
+        if miss <= accuracy:
+            calculate_tmp_hp(target_char, -dmg)
         bonus_value += accuracy/100
         
 
@@ -240,8 +288,6 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
             if target_char is None:
                 target_char = char
             calculate_tmp_hp(target_char, round(char.get_stats()[Stats.MAGIC] / 2))
-            if target_char.get_hp() == target_char.get_maxhp(): # Should not matter, but more clean to not heal characters with full hp
-                value = Value("Healing character with full HP", -math.inf)
 
         elif move.action_id == SkillType.RAISEDEF:
             # These should in future be somehow fetched from the skill itself rather than hard-coded here
