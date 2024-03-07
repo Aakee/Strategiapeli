@@ -241,6 +241,14 @@ def is_redundant_move(game, char, move):
             
     
     if move.action_type == 's':
+        # Skip if aoe that targets allies if the target char is not the char itself (the other variants
+        # have the exact same effect)
+        sk = char.get_skill_by_id(move.action_id)
+        if sk.affect_all and not sk.target_enemy:
+            target_char = game.board.get_piece(move.target_square)
+            if target_char != char:
+                return True
+        # Skip heal if it would not heal anything
         if move.action_id == SkillType.HEAL:
             target_char = game.board.get_piece(move.target_square)
             if target_char is None:
