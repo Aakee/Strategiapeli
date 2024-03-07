@@ -1,5 +1,6 @@
 from game_errors import IllegalMoveException
 import threading
+import queue
 import ai.distance
 
 class Board:
@@ -68,7 +69,6 @@ class Board:
         #    gui_tile.set_image(None,True)
     
     
-    
     def get_square(self, object):
         '''
         Returns coordinates for the square the object
@@ -120,7 +120,6 @@ class Board:
         if verbose:
             print("\n{} liikkui ruudusta ({},{}) ruutuun ({},{}).".format(char.get_name(),coordinates[0]+1,coordinates[1]+1,dst[0]+1,dst[1]+1))
     
-        
 
     def legal_squares(self, char):
         '''
@@ -128,20 +127,10 @@ class Board:
         @param char: Character whose legit squares we are intrested in
         @return: List of legit squares in format (x,y)
         '''
-        squares = []
-        init_range = char.get_range()
-        init_tile = char.get_square()
-        squares.append(init_tile)
-        for direction in Board.DIRECTIONS:
-            try:
-                new_coordinates = (init_tile[0]+direction[0],init_tile[1]+direction[1])
-                self.pass_by_square(char, init_range, new_coordinates, squares)
-            except IndexError:
-                pass
-        return squares
+        return self.legal_squares_from_tile(char, char.get_square())
     
-    
-    def legal_squares_from_tile(self, char, square):
+
+    def legal_squares_from_tile(self,char,init_square):
         '''
         Method defines all squares object can move to from a chosen square.
         Note that character doesn't have to be currently on said tile.
@@ -149,50 +138,57 @@ class Board:
         @param square: Coordinates of starting tile in format (x,y)
         @return: List of legit squares in format (x,y)
         '''
-        squares = []
-        init_range = char.get_range()
-        init_square = square
-        init_tile = self.get_tile(init_square)
-        if init_tile.get_object() == None:
-            if 0 <= init_square[0] < self.width and 0 <= init_square[1] < self.height:
-                squares.append(init_square)
-        for direction in Board.DIRECTIONS:
-            try:
-                new_coordinates = (init_square[0]+direction[0],init_square[1]+direction[1])
-                self.pass_by_square(char, init_range, new_coordinates, squares)
-            except IndexError:
-                pass
-        return squares
-    
-    def pass_by_square(self,char,steps,coordinates,squares):
-        '''
-        An assistant method of legal_squares -method.
-        @param char: Character who is moving
-        @param steps: Amount of steps which are left
-        @param coordinates: The tile we are currently inspecting
-        @param squares: List of legal squares' coordinates in format (x,y)
-        '''
-        new_tile = self.get_tile(coordinates)
-        result = new_tile.pass_by(char, steps) # result[0] = add, result[1] = steps_left
-        add = result[0]
-        steps_left = result[1]
-        if add and (coordinates not in squares):
-            if 0 <= coordinates[0] < self.width and 0 <= coordinates[1] < self.height:
-                squares.append(coordinates)
-        elif not add and coordinates not in squares:
-            if char.get_square() == coordinates:
-                squares.append(coordinates)
-        if steps_left > 0:
+        # Helper function to turn cordinates into strings
+        def coord2str(coord):
+            return f"{coord[0]},{coord[1]}"
+        
+        legal_squares   = []
+        init_range      = char.get_range()
+        
+        # Check if the character can stay on the very first square
+        can_stay, _     = self.get_tile(init_square).pass_by(char,init_range)
+        if can_stay:
+            legal_squares.append(init_square)
+
+        # Dictionary keeping track which squares has already been traversed, and which is the current maximum steps left it has been reached
+        shortest_paths = {coord2str(init_square): init_range} 
+        
+        # Queue for the BFS
+        q = queue.Queue()
+        q.put((init_range, init_square))
+
+        # Conduct the breadth-first search
+        while not q.empty():
+
+            # How many steps the character can still take, what is the current square in the search
+            steps_left, curr_square = q.get()
+
+            # Loop through all four neighbouring squares
             for direction in Board.DIRECTIONS:
-                try:
-                    new_coordinates = (coordinates[0] + direction[0], coordinates[1] + direction[1])
-                    if 0 <= new_coordinates[0] < self.width and 0 <= new_coordinates[1] < self.height:
-                        self.pass_by_square(char,steps_left,new_coordinates,squares)
-                except IndexError:
-                    pass
-        return
+                new_square = (curr_square[0]+direction[0], curr_square[1]+direction[1])
+
+                # Skip if out of bounds
+                if not 0 <= new_square[0] < self.width or not 0 <= new_square[1] < self.height:
+                    continue
+                can_stay, steps_after_moving =  self.get_tile(new_square).pass_by(char, steps_left)
+                
+                # Add to list if the character can stay in this square
+                if can_stay and new_square not in legal_squares:
+                    legal_squares.append(new_square)
+
+                # Add to list if tile.pass_by_square did not tell that the character can stand on this tile due to it already being there
+                elif not can_stay and self.get_piece(new_square) == char and new_square not in legal_squares:
+                    legal_squares.append(new_square)
+
+                # If there are steps left and this is the currently best path to the square, add to queue
+                if steps_after_moving > 0:
+                    if coord2str(new_square) not in shortest_paths or shortest_paths[coord2str(new_square)] < steps_after_moving:
+                        q.put((steps_after_moving, new_square))
+                        shortest_paths[coord2str(new_square)] = steps_after_moving
+        
+        return legal_squares
     
-    
+
     def legal_attack_targets(self,init_tile,range,target):
         '''
         Defines all legal attack targets' coordinates.
@@ -205,77 +201,23 @@ class Board:
         @return: List of legal squares' coordinates in format (x,y)
         '''
         squares = []
-                
-        for direction in Board.DIRECTIONS:
-            try:
-                new_coordinates = (init_tile[0] + direction[0], init_tile[1] + direction[1])
-                self.attack_through_square(new_coordinates, range, target, squares)
-            except IndexError:
-                pass
+        for square in self.get_tiles_in_range(init_tile,range):
+            target_char = self.get_piece(square)
+            if target_char is not None and target_char.owner == target:
+                squares.append(square)
         return squares
-                
         
-    def attack_through_square(self, coordinates, range, target,squares):
-        '''
-        An assistant method of legal_attack_targets -method.
-        @param coordinates: Coordinates of the tile we are now inspecting
-        @param range: Amount of range still left in squares
-        @param target: Owner of the characters we are looking for
-        @param squares: List of legal attack targets in format (x,y) 
-        '''
-        if self.get_piece(coordinates) != None:
-            if self.get_piece(coordinates).get_owner() == target and coordinates not in squares:
-                if coordinates[0] >= 0 and coordinates[1] >= 0:
-                    squares.append(coordinates)
-        range -= 1
-        if range > 0:
-            for direction in Board.DIRECTIONS:
-                try:
-                    new_coordinates = (coordinates[0] + direction[0], coordinates[1] + direction[1])
-                    self.attack_through_square(new_coordinates, range, target, squares)
-                except IndexError:
-                    pass
-        return
     
-    def get_tiles_in_range(self,init_coordinates,range):
+    def get_tiles_in_range(self,init_coordinates,d):
         '''
         Defines all tiles in range of range from square init_coordinates.
         @param init_coordinates: Coordinates we start from
         @param range: How far can we go from init_coordinates
         @return: List of all applicable squares in format (x,y)
         '''
-        if range == 0:
-            return [init_coordinates]
-        squares = []
-        init_tile = init_coordinates
-        squares.append(init_tile)
-        for direction in Board.DIRECTIONS:
-            try:
-                new_coordinates = (init_tile[0]+direction[0],init_tile[1]+direction[1])
-                self.tiles_in_direction(squares, new_coordinates, range)
-            except IndexError:
-                pass
-        return squares
+        x0, y0 = init_coordinates
+        return [ (x,y) for x in range(x0-d, x0+d+1) for y in range(y0-(d-abs(x0-x)),y0+(d-abs(x0-x))+1) if 0<=x<self.width and 0<=y<self.height ]
     
-    def tiles_in_direction(self,squares,coordinates,left):
-        '''
-        Assistant method of tiles_in_range.
-        @param squares: List of applicable squares
-        @param coordinates: Coordinates of square we are currently on
-        @param left: Steps we have left
-        '''
-        if coordinates not in squares:
-            if coordinates[0] >= 0 and coordinates[1] >= 0 and coordinates[0] < self.width and coordinates[1] < self.height:
-                squares.append(coordinates)
-        left -= 1
-        if left > 0:
-            for direction in Board.DIRECTIONS:
-                try:
-                    new_coordinates = (coordinates[0]+direction[0],coordinates[1]+direction[1])
-                    self.tiles_in_direction(squares, new_coordinates, left)
-                except IndexError:
-                    pass
-        return
                 
     def distance_to(self,square1,square2):
         '''
