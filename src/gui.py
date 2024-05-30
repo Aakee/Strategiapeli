@@ -69,7 +69,7 @@ class GUI(QMainWindow):
         self.actionwnd=None
         self.init_menu()
         
-        self.load_file(configload.get_filepath('savedata','save.txt'))
+        self.load_file(configload.get_filepath('savedata','save_yaml.yaml'))
         
         self.show()
     
@@ -88,7 +88,6 @@ class GUI(QMainWindow):
         
         print("Aloitetaan uusi peli!\n")
         self.winner_declared = False
-        self.game.get_blue_player().new_turn()
 
         self.blue_is_ai = self.game.get_blue_player().is_ai()
         self.red_is_ai = self.game.get_red_player().is_ai()
@@ -103,7 +102,10 @@ class GUI(QMainWindow):
             self.nof_ai_players = 1
             self.nof_human_players = 1
 
-        print("Sinisen pelaajan vuoro!")
+        if self.game.whose_turn == PlayerColor.BLUE:
+            print("Sinisen pelaajan vuoro!")
+        else:
+            print("Punaisen pelaajan vuoro!")
 
 
     def initUI(self):
