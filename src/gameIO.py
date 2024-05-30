@@ -147,6 +147,13 @@ def save_game(game, filename):
     @param filename: Name of the file method tries to write to
     '''
     savedata = {}
+
+    # Game section
+    game_section = {}
+    game_section['whose_turn'] = 'blue' if game.whose_turn == PlayerColor.BLUE else 'red'
+    game_section['blue_control'] = 'ai' if game.get_blue_player().ai else 'player'
+    game_section['red_control'] = 'ai' if game.get_red_player().ai else 'player'
+    savedata['game'] = game_section
     
     # map_keys section
     sym2tile = {'_':'plain',
@@ -180,6 +187,8 @@ def save_game(game, filename):
         char_data['color'] = char.owner.color.value
         char_data['loc']   = f'{char.get_square()[0]},{char.get_square()[1]}'
         char_data['hp']    = char.get_hp()
+        if char.ready:
+            char_data['moven'] = True
         all_characters.append(char_data)
     savedata['characters'] = all_characters
 
