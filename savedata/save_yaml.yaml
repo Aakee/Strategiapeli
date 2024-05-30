@@ -1,0 +1,111 @@
+game:
+  mode:           deathmatch
+  blue_control:   player
+  red_control:    player
+  whose_turn:     red
+  
+
+map_keys:
+  _:    plain
+  s:    sand
+  ^:    forest
+  w:    water
+  +:    mountain
+  X:    wall
+
+
+map: |
+  +++++++++++++++
+  +_______+++++++
+  __________+++++
+  _+______^___+++
+  _+__ss_______++
+  ___ssss_______+
+  __ssssss___^__+
+  ___ssssss_____+
+  www___ssss____+
+  __ww____sss___+
+  ____w___ws____+
+  __^^^__www____+
+  ___^^^^__www__+
+  __^^^^___ww___+
+  _^^^^^_______++
+
+
+characters:
+  - class: Cleric
+    color: Blue
+    loc:   13,1
+    hp:    1
+  
+  - class: Knight
+    color: Blue
+    loc:   12,2
+    hp:    1000
+
+  - class: Archer
+    color: Blue
+    loc:   11,1
+
+  - class: Mage
+    color: Blue
+    loc:   13,2
+
+  - class: Assassin
+    color: Blue
+    loc:   10,2
+
+  - class: Assassin
+    color: Blue
+    loc:   12,4
+
+  - class: Mage
+    color: Blue
+    loc: 10,3
+
+  - class: Valkyrie
+    color: Blue
+    loc:   10,4
+    moven: true
+
+
+  - class: Cleric
+    color: Red
+    loc:   4,12
+
+  - class: Cleric
+    color: Red
+    loc:   4,14
+
+  - class: Archer
+    color: Red
+    loc:   2,13
+
+  - class: Mage
+    color: Red
+    loc:   4,13
+
+  - class: Assassin
+    color: Red
+    loc:   5,11
+
+  - class: Knight
+    color: Red
+    loc:   3,11
+
+  - class: Assassin
+    color: Red
+    loc:   6,13
+
+  - class: Knight
+    color: Red
+    loc:   5,14
+
+  - class: Archer
+    color: Red
+    loc:   2,11
+
+  - class: Valkyrie
+    color: Red
+    loc:   2,12
+    moven: true
