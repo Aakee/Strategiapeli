@@ -3,7 +3,7 @@ Includes some enumerations used in the game.
 '''
 from enum import Enum
 
-class PlayerColor(Enum):
+class PlayerColor:
     '''
     Depicts the two players of the game.
     '''
@@ -23,7 +23,7 @@ class Stats(Enum):
     MAXHP       = "max"
     RANGE       = "rng"
 
-class CharacterClass(Enum):
+class CharacterClass:
     '''
     Character classes
     '''
@@ -37,7 +37,7 @@ class CharacterClass(Enum):
     VIP         = "vip"
     STUCK_VIP   = "stuck_vip"
 
-class Terrain(Enum):
+class Terrain:
     '''
     Different terrains for Tiles
     '''
@@ -51,7 +51,7 @@ class Terrain(Enum):
     SNOW        = "snow"
     WOOD        = "wood"
 
-class SkillType(Enum):
+class SkillType:
     '''
     Different skills
     '''
@@ -75,7 +75,7 @@ class SkillType(Enum):
     RAISERNG    = 34   # Character raises range for nearby allies until start of next turn
     WISH        = 39   # Another character can move second time
     
-class AttackType(Enum):
+class AttackType:
     '''
     Different attacks
     '''
