@@ -281,7 +281,7 @@ class GUI(QMainWindow):
             fname = arg
         else:
             directory = configload.getdir('savedata')
-            fname = QFileDialog.getOpenFileName(self, 'Open file', directory,"Text files (*.txt)")
+            fname = QFileDialog.getOpenFileName(self, 'Open file', directory)
             
         if fname[0] == '': #If canceled
             return

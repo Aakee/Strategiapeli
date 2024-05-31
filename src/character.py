@@ -9,16 +9,16 @@ from confirmwindow import ConfirmAttack
 import random
 import skill
 import attack
-from game_enums import CharacterClass
+from game_enums import CharacterClass, PlayerColor
 
 class Character:
     '''
     Basic class for all characters.
     '''
-    def __init__(self, game, owner):
+    def __init__(self, game, color):
         self.game = game
         self.board = game.get_board()
-        self.owner = owner
+        self.color = color
         self.name = "Name"
         self.alive = True
         self.type = None
@@ -35,7 +35,7 @@ class Character:
         self.skills = []
         self.legal_squares = None
         self.init_square = None
-        owner.add_character(self)
+        self.game.get_player(self.color).add_character(self)
         
     def get_initial_stats(self):
         return self.stats
@@ -147,10 +147,10 @@ class Character:
             self.die(verbose=verbose)
             
     def get_owner(self):
-        return self.owner
+        return self.game.get_player(self.color)
             
     def is_enemy(self,other):
-        return self.owner != other.owner
+        return self.color != other.color
     
     def is_ready(self):
         return self.ready
@@ -186,7 +186,7 @@ class Character:
         if self.get_square() != None:
             self.board.remove_object(self.get_square())
             try:
-                self.owner.remove_character(self)
+                self.get_owner().remove_character(self)
             except ValueError:
                 pass
         self.carried = True
@@ -201,7 +201,7 @@ class Character:
         self.skills.append(skill.Free(self))
         if self.game.get_capture():
             self.skills.append(skill.Capture(self))
-            if self.owner == self.game.get_ai():
+            if self.get_owner() == self.game.get_ai():
                 self.skills.append(skill.Execute(self))
         
     def set_transfer(self):
@@ -229,9 +229,9 @@ class Character:
             filename += '_carry_'
         if self.ready:
             filename += '_grey.png'
-        elif self.owner == self.game.get_blue_player():
+        elif self.get_owner() == self.game.get_blue_player():
             filename += '_blue.png'
-        elif self.owner == self.game.get_red_player():
+        elif self.get_owner() == self.game.get_red_player():
             filename += '_red.png'
         else:
             raise KeyError("Error with player's controller!")
@@ -242,9 +242,9 @@ class Character:
         Same as get_path, but always returns path to coloured version of the picture (not the grey variant).
         '''
         filename = self.name.lower()
-        if self.owner == self.game.get_blue_player():
+        if self.get_owner() == self.game.get_blue_player():
             filename += '_blue.png'
-        elif self.owner == self.game.get_red_player():
+        elif self.get_owner() == self.game.get_red_player():
             filename += '_red.png'
         else:
             raise KeyError("Error with player's controller!")
@@ -291,7 +291,7 @@ class Character:
         
         #print(self.game.get_board().get_tile(self.game.get_board().get_square(self)))
         #print(self.tile.get_gui_tile())
-        if not self.owner.is_ai() and self.game.get_board().get_tile(self.game.get_board().get_square(self)) != None: # If player controls char and gui is active
+        if not self.get_owner().is_ai() and self.game.get_board().get_tile(self.game.get_board().get_square(self)) != None: # If player controls char and gui is active
             wnd = ConfirmAttack(self,attack,target)     
             if not wnd.exec_():
                 return
@@ -315,7 +315,7 @@ class Character:
         if not self.carried:
             square = self.get_square()
             self.board.remove_object(square)
-            self.owner.remove_character(self)
+            self.get_owner().remove_character(self)
         self.hp = 0
         self.alive = False
         if self.get_carrying() != None:
@@ -377,10 +377,7 @@ class Character:
         for sk in self.skills:
             if sk.get_type() in activating_skills:
                 sk.use()
-        
-        
 
-        
     def __str__(self):
         '''
         Returns the character's state as a string.
@@ -410,6 +407,21 @@ class Character:
         
         return char
     
+    def to_dict(self):
+        '''
+        Returns the character's data as a dictionary
+        '''
+        data                = {}
+        data['name']        = self.name
+        data['color']       = self.color
+        data['class']       = self.type
+        data['square']      = self.get_square()
+        data['status']      = self.status
+        data['carried']     = self.carried
+        data['ready']       = self.ready
+        data['init_square'] = self.init_square
+        data['hp']          = self.hp
+        return data
 
 
 '''
@@ -420,8 +432,8 @@ class TestChar(Character):
     '''
     Basic character type used for testing.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "TestChar"
         self.type = CharacterClass.TESTCHAR      
         self.maxhp = 25
@@ -440,16 +452,14 @@ class TestChar(Character):
         self.attacks.append(attack.Swordstrike(self))
         self.attacks.append(attack.Javelin(self))
         # (user, range, power, accuracy, name, flavor)
-    def new(self,owner):
-        return TestChar(self.game,owner)
         
         
 class Knight(Character):
     '''
     An all-around decent physical class.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "Knight"
         self.type = CharacterClass.KNIGHT        
         self.maxhp = 25
@@ -473,8 +483,8 @@ class Archer(Character):
     '''
     A class which can shoot arrows far away.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "Archer"
         self.type = CharacterClass.ARCHER     
         self.maxhp = 20
@@ -499,8 +509,8 @@ class Mage(Character):
     '''
     A class which attacks with magic.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "Mage"
         self.type = CharacterClass.MAGE  
         self.maxhp = 20
@@ -524,8 +534,8 @@ class Cleric(Character):
     '''
     A support class with many useful skills but low defensive stats.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "Cleric"
         self.type = CharacterClass.CLERIC   
         self.maxhp = 20
@@ -549,8 +559,8 @@ class Assassin(Character):
     '''
     An agile class with high evasion and speed.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "Assassin"
         self.type = CharacterClass.ASSASSIN  
         self.maxhp = 17
@@ -574,8 +584,8 @@ class Valkyrie(Character):
     '''
     A flying class with high range but with a weakness to arrows.
     '''
-    def __init__(self, game, owner):
-        Character.__init__(self,game, owner)
+    def __init__(self, game, color):
+        Character.__init__(self,game, color)
         self.name = "Valkyrie"
         self.type = CharacterClass.VALKYRIE
         self.maxhp = 18
@@ -595,7 +605,50 @@ class Valkyrie(Character):
         self.attacks.append(attack.Stormwind(self))
         
     def get_path(self):
-        if self.owner == self.game.get_red_player() and self.is_ready():
+        if self.color == PlayerColor.RED and self.is_ready():
             return configload.get_image('valkyrie_red_moven.png')
         return Character.get_path(self)
+
+
+
+CHARACTER_CLASS_TO_CHARACTER = {
+    CharacterClass.TESTCHAR:    TestChar,
+    CharacterClass.KNIGHT:      Knight,
+    CharacterClass.ARCHER:      Archer,
+    CharacterClass.MAGE:        Mage,
+    CharacterClass.CLERIC:      Cleric,
+    CharacterClass.ASSASSIN:    Assassin,
+    CharacterClass.VALKYRIE:    Valkyrie,
+}
+
+def from_dict(data, game):
+    '''
+    Function creates a Character based on the data in the given dictionary.
+    @param data:    Dictionary, in the format given by Character.to_dict(),
+                    i.e. from_dict(char.to_dict()) should return a character identical to char
+    @param game:    Game object this character will be inserted into
+    '''
+    character_class     = data['class'].lower()
+    color               = data['color'].lower()
     
+    # Create the character object based on the character class name given, and the color of the character
+    char                = CHARACTER_CLASS_TO_CHARACTER[character_class](game, color)
+    
+    # Loop through the values and add them to the character
+    for key, value in data.items():
+        if key in ('class','color'):
+            continue
+        if key == 'loc':
+            x,y = data[key].split(',')
+            x,y = int(x), int(y)
+            game.get_board().set_object((x,y), char)
+            continue
+        if key == 'square':
+            game.get_board().set_object(data[key], char)
+            continue
+        if not hasattr(char, key):
+            raise ValueError(key)
+        char.key = value
+        setattr(char, key, value)
+        
+    return char

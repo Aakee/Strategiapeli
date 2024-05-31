@@ -66,7 +66,7 @@ characters:
   - class: Valkyrie
     color: Blue
     loc:   10,4
-    moven: true
+    ready: true
 
 
   - class: Cleric
@@ -108,4 +108,4 @@ characters:
   - class: Valkyrie
     color: Red
     loc:   2,12
-    moven: true
+    ready: true

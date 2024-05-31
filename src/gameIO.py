@@ -28,7 +28,6 @@ def load_game(input_file):
         blue_ai = True
     else:
         blue_ai = False
-
     if 'red_control' in data['game'] and data['game']['red_control'].lower() == 'player':
         red_ai = False
     else:
@@ -47,31 +46,9 @@ def load_game(input_file):
             game.whose_turn = PlayerColor.RED
 
     # Load characters
-    blue_player = game.get_blue_player()
-    red_player  = game.get_red_player()
     for char_data in data['characters']:
-        if char_data['color'].lower() == 'blue':
-            controller = blue_player
-        elif char_data['color'].lower() == 'red':
-            controller = red_player
-        else:
-            raise CorruptedSaveFileException("")
-        char_class = char_data['class']
-        char = new_char(controller, char_class, game)
-
-        x,y = char_data['loc'].split(',')
-        x,y = int(x), int(y)
-        game.get_board().set_object((x,y), char)
-
-        if 'hp' in char_data:
-            char.set_hp(char_data['hp'])
-
-        if 'moven' in char_data:
-            if char_data['moven'] in (True, False):
-                char.ready = char_data['moven']
-            else:
-                raise CorruptedSaveFileException(f"Corrupted character movement status: {char_data['moven']}")
-
+        character.from_dict(char_data, game)
+                
     return game
             
         
@@ -101,33 +78,6 @@ def new_tile(key, game):
         tile = Plain(game)
     return tile
 
-def new_char(owner,type,game):
-    '''
-    Method creates a new character according to parameters it gets.
-    @param owner: Human- or AI-object, who controls character
-    @param type: Character's class as a string
-    @param tile: Tile from which the character starts from
-    '''
-    type = type.strip().lower()
-    if type == "testchar":
-        char = character.TestChar(game,owner)
-    elif type == "knight":
-        char = character.Knight(game,owner)
-    elif type == "archer":
-        char = character.Archer(game,owner)
-    elif type == "mage":
-        char = character.Mage(game,owner)
-    elif type == "cleric":
-        char = character.Cleric(game,owner)
-    elif type == "assassin":
-        char = character.Assassin(game,owner)
-    elif type == "valkyrie":
-        char = character.Valkyrie(game,owner)
-    else:
-        char = character.TestChar(game,owner)
-    
-    return char
-    
     
 def set_width(width, previous_width):
     '''
@@ -181,14 +131,7 @@ def save_game(game, filename):
     # Parse through characters (characters section)
     all_characters = []
     for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
-        char_data = {}
-        print(char)
-        char_data['class'] = char.type.value
-        char_data['color'] = char.owner.color.value
-        char_data['loc']   = f'{char.get_square()[0]},{char.get_square()[1]}'
-        char_data['hp']    = char.get_hp()
-        if char.ready:
-            char_data['moven'] = True
+        char_data = char.to_dict()
         all_characters.append(char_data)
     savedata['characters'] = all_characters
 

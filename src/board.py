@@ -203,7 +203,7 @@ class Board:
         squares = []
         for square in self.get_tiles_in_range(init_tile,range):
             target_char = self.get_piece(square)
-            if target_char is not None and target_char.owner == target:
+            if target_char is not None and target_char.get_owner() == target:
                 squares.append(square)
         return squares
         

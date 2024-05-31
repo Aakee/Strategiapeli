@@ -152,7 +152,7 @@ def calculate_enemy_threat(char,square):
     '''
     value = 1
     possible_damage = 0
-    enemy = char.game.get_blue_player() if char.owner == char.game.get_red_player() else char.game.get_red_player()
+    enemy = char.game.get_blue_player() if char.get_owner() == char.game.get_red_player() else char.game.get_red_player()
     for char in enemy.get_characters():
         possible_squares = char.board.legal_squares(char)
         enemy_attacks = char.get_attacks()
