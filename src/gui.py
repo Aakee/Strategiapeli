@@ -312,7 +312,7 @@ class GUI(QMainWindow):
         try:
             if arg[0] == False:
                 directory = configload.getdir('savedata')
-                fname = QFileDialog.getSaveFileName(self, 'Save file', directory, "Text files (*.txt)")
+                fname = QFileDialog.getSaveFileName(self, 'Save file', directory, "Save files (*.save)")
             gameIO.save_game(self.game, fname[0])
             self.statusBar().showMessage('Tallentaminen onnistui!')
         except CorruptedSaveFileException:
@@ -470,11 +470,13 @@ class GUI(QMainWindow):
         # Red player is starting their turn
         if self.game.get_current_player() == self.game.get_blue_player():
             print("\n\nPunaisen pelaajan vuoro!\n")
-            self.save_game(configload.get_filepath('savedata','backup.txt')) # Backup save each turn
 
         # Blue player is starting their turn
         else:
             print("\n\nSinisen pelaajan vuoro!\n")
+
+        # Backup save each turn
+        self.save_game(configload.get_filepath('savedata','backup.save'))
 
         # Set status bar message
         if not self.game.get_current_player().is_ai():
