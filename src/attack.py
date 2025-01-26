@@ -55,6 +55,7 @@ class Attack:
             factor = 1/3
         accuracy = accuracy * factor
         
+        '''
         combat_skills = Skill.passive_combat
         relevant_skills = []
         
@@ -65,9 +66,11 @@ class Attack:
         for skill in target.get_full_skills():
             if skill.get_type() in combat_skills:
                 relevant_skills.append(skill)
-                
+        '''
         
-        for skill in relevant_skills:
+        for skill in self.user.get_full_skills():
+            accuracy = skill.define_accuracy(accuracy,self.user,target)
+        for skill in target.get_full_skills():
             accuracy = skill.define_accuracy(accuracy,self.user,target)
         
         accuracy = round(accuracy)
@@ -91,6 +94,7 @@ class Attack:
         combat_skills = Skill.passive_combat
         relevant_skills = []
         
+        '''
         for skill in self.user.get_full_skills():
             if skill.get_type() in combat_skills:
                 relevant_skills.append(skill)
@@ -98,10 +102,12 @@ class Attack:
         for skill in target.get_full_skills():
             if skill.get_type() in combat_skills:
                 relevant_skills.append(skill)
-
+        '''
         
-        for skill in relevant_skills:
-            damage = skill.define_damage(damage,self.user,target)
+        for skill in self.user.get_full_skills():
+            damage = skill.define_accuracy(damage,self.user,target)
+        for skill in target.get_full_skills():
+            damage = skill.define_accuracy(damage,self.user,target)
         
         damage = round(damage)
         return damage

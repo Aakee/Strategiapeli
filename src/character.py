@@ -123,6 +123,7 @@ class Character:
         '''
         Returns list of types character has.
         '''
+        self.update_skills()
         skills = []
         for skill in self.skills:
             skills.append(skill.get_type())
@@ -132,7 +133,19 @@ class Character:
         '''
         In comparison to above, returns whole self.skills list
         '''
+        self.update_skills()
         return self.skills
+    
+    def update_skills(self):
+        '''
+        Removes skills with no uses left.
+        '''
+        skills_to_be_deleted = []
+        for sk in self.skills:
+            if sk.has_ended:
+                skills_to_be_deleted.append(sk)
+        for sk in skills_to_be_deleted:
+            self.delete_skill(sk.type)
     
     def get_name(self):
         return self.name
@@ -396,10 +409,8 @@ class Character:
         self.init_square = None
         self.reset_stats()
 
-        for sk in self.skills:
+        for sk in self.get_full_skills():
             sk.new_turn()
-            if sk.has_ended:
-                self.delete_skill(sk.type)
 
     def __str__(self):
         '''

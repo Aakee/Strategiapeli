@@ -184,7 +184,7 @@ def get_best_move_for_character(game, char, player_color):
                 best_move, best_value = move, move.value.get()
 
         # Check value for each skill from this square
-        activated_skills = [sk for sk in char.skills if sk.type in skill.Skill.active_skills]
+        activated_skills = [sk for sk in char.get_full_skills() if sk.type in skill.Skill.active_skills]
         skill_targets  = [(target_square, sk.type) for sk in activated_skills for target_square in char.define_attack_targets(square, sk.get_range(), sk.targets_enemy()) ]
         for skill_target, skill_type in skill_targets:
             move = Move( char.get_square(), square, skill_target, 's', skill_type )
@@ -299,7 +299,7 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
 
         elif move.action_id == SkillType.RAISEDEF:
             # These should in future be somehow fetched from the skill itself rather than hard-coded here
-            stats = {Stats.ATTACK: 0, Stats.DEFENSE: 4, Stats.MAGIC: 0,\
+            stats = {Stats.ATTACK: 0, Stats.DEFENSE: 3, Stats.MAGIC: 0,\
                         Stats.RESISTANCE: 3, Stats.SPEED: 0, Stats.EVASION: 0}
             skill = char.get_skill_by_id(move.action_id)
             all_squares = game.board.get_tiles_in_range(char.get_square(),skill.range)

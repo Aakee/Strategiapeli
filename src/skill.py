@@ -206,7 +206,7 @@ class RaiseDef(Skill):
     def __init__(self,char):
         super().__init__(char)
         self.name = "Raise defense"
-        self.flavor = "Raises defense by 4 and resistance by 3 for all allies in range 3 until end of turn."
+        self.flavor = "Gives Fortify to nearby allies."
         self.type = SkillType.RAISEDEF
         self.range = 3
         self.affect_all = True

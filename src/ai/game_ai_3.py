@@ -132,7 +132,7 @@ def get_move(game, player_color) -> Move:
     possible_moves.append(Move( char.get_square(), char.get_square(), None, 'p', None ))
 
     for square in char.get_legal_squares():
-        activated_skills = [sk for sk in char.skills if sk.type in skill.Skill.active_skills]
+        activated_skills = [sk for sk in char.get_full_skills() if sk.type in skill.Skill.active_skills]
         skill_targets  = [(target_square, sk.type) for sk in activated_skills for target_square in char.define_attack_targets(square, sk.get_range(), sk.targets_enemy()) ]
         attack_targets = [(target_square, att.type) for att in char.get_attacks() for target_square in char.define_attack_targets(square, att.get_range()[1], True) ]
         
