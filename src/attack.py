@@ -91,23 +91,10 @@ class Attack:
         if damage <= 0:
             damage = 0
             
-        combat_skills = Skill.passive_combat
-        relevant_skills = []
-        
-        '''
         for skill in self.user.get_full_skills():
-            if skill.get_type() in combat_skills:
-                relevant_skills.append(skill)
-                
+            damage = skill.define_damage(damage,self.user,target)
         for skill in target.get_full_skills():
-            if skill.get_type() in combat_skills:
-                relevant_skills.append(skill)
-        '''
-        
-        for skill in self.user.get_full_skills():
-            damage = skill.define_accuracy(damage,self.user,target)
-        for skill in target.get_full_skills():
-            damage = skill.define_accuracy(damage,self.user,target)
+            damage = skill.define_damage(damage,self.user,target)
         
         damage = round(damage)
         return damage

@@ -469,7 +469,6 @@ class Fortify(Skill):
 
     def new_turn(self):
         self.increase_use_count(1)
-        print(self.max_uses, self.use_count, self.has_ended)
 
     def get_stats(self, orig_stats):
         orig_stats[Stats.DEFENSE] += 3
