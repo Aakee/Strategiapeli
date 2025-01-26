@@ -78,6 +78,7 @@ class SkillType:
     # Positive statuses
     FORTIFY     = 51
     SWIFT       = 52
+    INSPIRED    = 53
 
     # Negative statuses
 

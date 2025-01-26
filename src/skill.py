@@ -441,7 +441,9 @@ class Wish(Skill):
             raise IllegalMoveException("Cannot use skill on chosen character!")
         skills = target.get_skills()
         if SkillType.WISH in skills:
-            raise IllegalMoveException("Cannot use skill on chosen character!")       
+            raise IllegalMoveException("Cannot use skill on chosen character!")
+        if SkillType.INSPIRED in skills:
+            raise IllegalMoveException("Cannot use skill on chosen character!")     
         
         if not self.char.get_owner().is_ai():
             string = "Use Wish?"
@@ -450,7 +452,7 @@ class Wish(Skill):
                 return 
         
         target.set_not_ready()
-        target.modify_stats(stats,range)
+        target.add_skill(Inspired(target))
         self.char.set_ready()
         if verbose:
             print("{} used Wish on {}!".format(self.char.get_name(), target.get_name()))
@@ -491,3 +493,25 @@ class Swift(Skill):
 
     def get_stats(self, orig_stats):
         orig_stats[Stats.RANGE] += 1
+
+
+class Inspired(Skill):
+    '''
+    Enhances character's stats after another character used Wish on them.
+    '''
+    def __init__(self, char) -> None:
+        super().__init__(char)
+        self.name = "Inspired"
+        self.flavor = "Character has enhanced stats due to Wish. Cannot be the target of another Wish."
+        self.type = SkillType.INSPIRED
+        self.max_uses = 1
+
+    def new_turn(self):
+        self.increase_use_count(1)
+
+    def get_stats(self, orig_stats):
+        orig_stats[Stats.ATTACK]        += 1
+        orig_stats[Stats.DEFENSE]       += 1
+        orig_stats[Stats.MAGIC]         += 1
+        orig_stats[Stats.RESISTANCE]    += 1
+    
