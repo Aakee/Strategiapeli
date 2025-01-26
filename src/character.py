@@ -61,7 +61,7 @@ class Character:
         stats[Stats.RESISTANCE] += stat_enhanc[Stats.RESISTANCE]
         stats[Stats.SPEED]      += stat_enhanc[Stats.SPEED]
         stats[Stats.EVASION]    += stat_enhanc[Stats.EVASION]
-        for skill in self.skills:
+        for skill in self.get_full_skills():
             skill.get_stats(stats)
         return stats
     
