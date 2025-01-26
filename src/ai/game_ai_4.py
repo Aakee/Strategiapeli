@@ -158,8 +158,6 @@ def get_best_move_for_character(game, char, player_color):
     enemy_threat_board  = construct_player_threat_board(game, enemy)
 
     # Set up the tmp stats used by the heuristics function
-    #init_tmp_stats(game)
-    #reset_tmp_stats(game)
     original_square = char.get_square()
     prepare_game_copy(game)
 
@@ -241,7 +239,6 @@ def is_redundant_move(game, char, move):
             if other_attack_accuracy > accuracy and other_attack_max_damage >= target_char.tmp_hp:
                 return True
             
-    
     if move.action_type == 's':
         # Skip if aoe that targets allies if the target char is not the char itself (the other variants
         # have the exact same effect)
@@ -290,106 +287,28 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
         #    calculate_tmp_hp(target_char, -dmg)
         accuracy    = attack.calculate_accuracy(target_char)
         bonus_value += accuracy/100
-        
 
     # Skill
-    # A bit ugly, but hard-coded logic for each activated skill
-    # Could be possible to enhance in future
     elif move.action_type == 's':
+        # If no characters in the target square: act if the chosen target was the moved character itself
         if game.board.get_piece(move.target_square) is None:
             move.target_square = move.destination_square
         
+        # Use the skill. If it is an illegal move, return a value of -inf.
         sk = char.get_skill_by_id(move.action_id)
         try:
             sk.use(move.target_square, verbose=False)
         except game_errors.IllegalMoveException:
             reset_game_copy(game)
-            print(move)
             value = Value("Illegal move", -math.inf)
             return value
-        
-        '''
-        if move.action_id == SkillType.HEAL:
-            target_char = game.board.get_piece(move.target_square)
-            if target_char is None:
-                target_char = char
-            calculate_tmp_hp(target_char, round(char.get_stats()[Stats.MAGIC] / 2))
-        '''
-        '''
-        elif move.action_id == SkillType.RAISEDEF:
-            # These should in future be somehow fetched from the skill itself rather than hard-coded here
-            stats = {Stats.ATTACK: 0, Stats.DEFENSE: 3, Stats.MAGIC: 0,\
-                        Stats.RESISTANCE: 3, Stats.SPEED: 0, Stats.EVASION: 0}
-            skill = char.get_skill_by_id(move.action_id)
-            all_squares = game.board.get_tiles_in_range(char.get_square(),skill.range)
-            for square in all_squares:
-                other_char = game.board.get_piece(square)
-                if other_char != None:
-                    owner = other_char.get_owner()
-                    if owner.color == char.get_owner().color:
-                        other_char.modify_stats(stats,0)
-
-        elif move.action_id == SkillType.RAISERNG:
-            # These should in future be somehow fetched from the skill itself rather than hard-coded here
-            stats = {Stats.ATTACK: 0, Stats.DEFENSE: 0, Stats.MAGIC: 0,\
-                        Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0}
-            range_increase = 1
-            skill = char.get_skill_by_id(move.action_id)
-            all_squares = game.board.get_tiles_in_range(char.get_square(),skill.range)
-            for square in all_squares:
-                other_char = game.board.get_piece(square)
-                if other_char != None:
-                    owner = other_char.get_owner()
-                    if owner.color == char.get_owner().color:
-                        other_char.modify_stats(stats,range_increase)
-
-        elif move.action_id == SkillType.WISH:
-            # These should in future be somehow fetched from the skill itself rather than hard-coded here
-            stats = {Stats.ATTACK: 1, Stats.DEFENSE: 1, Stats.MAGIC: 1,\
-                        Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0}
-            range_increase = 0
-            skill = char.get_skill_by_id(move.action_id)
-            target_char = game.board.get_piece(move.target_square)
-            if target_char is None:
-                value = Value("Wish on empty square", -math.inf)
-            elif target_char.get_owner().color != char.get_owner().color:
-                value = Value("Wish on enemy char", -math.inf)
-            elif not target_char.is_ready():
-                value = Value("Wish on non-moven char", -math.inf)
-            elif SkillType.WISH in target_char.get_skills():
-                value = Value("Wish on another player with wish", -math.inf)
-            else:
-                target_char.modify_stats(stats, range_increase)
-                target_char.ready = False
-                original_square = target_char.get_square()
-                char.ready = True
-                value = get_best_move_for_character(game, target_char, player_color).value
-                game.board.move_char(target_char, original_square, verbose=False)
-                target_char.ready = True
-                char.ready = False
-        '''
-        '''
-        if False:
-            pass
-
-        else:
-            game_copy = copy.deepcopy(game)
-            new_char = game_copy.board.get_piece(char.get_square())
-            skill = new_char.get_skill_by_id(move.action_id)
-            print(skill)
-            game_copy.use_skill(new_char, move.target_square, skill, verbose=False)
-            value = get_heuristic_board_value(game_copy, new_char, player_color, player_threat_board, enemy_threat_board)
-        '''
-        
-
-    # If the value has not been calculated in the previous steps already
-    if value is None:
-        value = get_heuristic_board_value(game, char, player_color, player_threat_board, enemy_threat_board)
+    
+    # Calculate the heuristic value
+    value = get_heuristic_board_value(game, char, player_color, player_threat_board, enemy_threat_board)
     value += ("Bonus value", bonus_value)
 
     # Move back to original square and reset temporary stats
     game.board.move_char(char, move.source_square, verbose=False)
-    #reset_tmp_stats(game)
     reset_game_copy(game)
     return value
 
@@ -550,35 +469,11 @@ def get_probable_enemy_damage(game, threat_board, char, disregard_moven=False):
     return char_attack
 
 
-def init_tmp_stats(game):
-    '''
-    Set up the 'tmp stats' for each character:
-    - Tmp hp to current hp
-    - Save the original (current) stats
-    - Save the original (current) range
-    '''
-    for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
-        char.original_hp    = char.get_hp()
-        char.original_stats = dict(char.stats)
-        char.original_skills = copy.deepcopy(char.get_full_skills())
-        #char.original_range = char.range
-
-
-def reset_tmp_stats(game):
-    '''
-    Reset the 'tmp stats' for each character:
-    - HP to the previously saved original HP
-    - Stats to the previously saved original stats
-    - Range to the previously saved original range
-    '''
-    for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
-        char.tmp_hp = char.original_hp
-        char.stats  = dict(char.original_stats)
-        char.skills = list(char.original_skills)
-        #char.range  = char.original_range
-
-
 def prepare_game_copy(game):
+    '''
+    Prepares the game copy to be used with the AI by saving the characters' initial stats and modifying their 'die'-methods
+    such as they cannot really die.
+    '''
     class TmpGameHandler:
         def __init__(self, char):
             self.char = char
@@ -596,24 +491,14 @@ def prepare_game_copy(game):
         char.die = tmp_handler.die_dummy
 
 def reset_game_copy(game):
+    '''
+    Resets the given game copy to its original state. The 'prepare_game_copy' function must have been called earlier.
+    '''
     for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
         char.hp        = char.original_hp
         char.skills    = list(char.original_skills)
         char.ready     = char.original_ready
         char.alive     = char.original_alive
-
-
-def calculate_tmp_hp(char, tmp_hp_delta=0):
-    '''
-    Calculates the HP of a character, when the tmp hp is applied.
-    Logic is that the tmp hp can be changed freely without the game logic breaking. Thus, when a character is dealt damage
-    or healed in these AI functions, the tmp hp is altered rather than the real hp. This HP can be then reset between iterations.
-    @param tmp_hp_delta: How much the tmp hp is altered
-    '''
-    if char.tmp_hp > 0:
-        char.tmp_hp += tmp_hp_delta
-    char.tmp_hp  = min(char.tmp_hp, char.get_maxhp())
-    char.tmp_hp  = max(char.tmp_hp, 0)
 
 
 def get_winner(game):
