@@ -7,6 +7,7 @@ import random
 import skill
 from game_enums import CharacterClass, PlayerColor, SkillType, Stats
 from move import Move, Value
+import game_errors
 
 import copy
 import math
@@ -157,9 +158,10 @@ def get_best_move_for_character(game, char, player_color):
     enemy_threat_board  = construct_player_threat_board(game, enemy)
 
     # Set up the tmp stats used by the heuristics function
-    init_tmp_stats(game)
-    reset_tmp_stats(game)
+    #init_tmp_stats(game)
+    #reset_tmp_stats(game)
     original_square = char.get_square()
+    prepare_game_copy(game)
 
     # Initialize the current best move
     best_move, best_value = None, -math.inf
@@ -253,7 +255,7 @@ def is_redundant_move(game, char, move):
             target_char = game.board.get_piece(move.target_square)
             if target_char is None:
                 target_char = char
-            if target_char.tmp_hp >= target_char.get_maxhp():
+            if target_char.hp >= target_char.get_maxhp():
                 return True
 
     return False
@@ -267,7 +269,7 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
     - All changes to stats and tmp_hp are reseted afterwards
     - Character is moved back to the original square afterwards.
     '''
-    reset_tmp_stats(game)
+    #reset_tmp_stats(game)
     value = None
     bonus_value = 0
 
@@ -279,11 +281,14 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
         # Find the attack from the character which matches the chosen one
         attack      = char.get_attack_by_id(move.action_id)
         target_char = game.board.get_piece(move.target_square)
-        dmg         = attack.calculate_max_damage(target_char)
+        #dmg         = attack.calculate_max_damage(target_char)
+        #accuracy    = attack.calculate_accuracy(target_char)
+        #miss       = random.randint(1,100)
+        damage      = attack.calculate_damage(target_char, verbose=False)
+        target_char.remove_hp(damage, verbose=False)
+        #if miss <= accuracy:
+        #    calculate_tmp_hp(target_char, -dmg)
         accuracy    = attack.calculate_accuracy(target_char)
-        miss        = random.randint(1,100)
-        if miss <= accuracy:
-            calculate_tmp_hp(target_char, -dmg)
         bonus_value += accuracy/100
         
 
@@ -291,12 +296,26 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
     # A bit ugly, but hard-coded logic for each activated skill
     # Could be possible to enhance in future
     elif move.action_type == 's':
+        if game.board.get_piece(move.target_square) is None:
+            move.target_square = move.destination_square
+        
+        sk = char.get_skill_by_id(move.action_id)
+        try:
+            sk.use(move.target_square, verbose=False)
+        except game_errors.IllegalMoveException:
+            reset_game_copy(game)
+            print(move)
+            value = Value("Illegal move", -math.inf)
+            return value
+        
+        '''
         if move.action_id == SkillType.HEAL:
             target_char = game.board.get_piece(move.target_square)
             if target_char is None:
                 target_char = char
             calculate_tmp_hp(target_char, round(char.get_stats()[Stats.MAGIC] / 2))
-
+        '''
+        '''
         elif move.action_id == SkillType.RAISEDEF:
             # These should in future be somehow fetched from the skill itself rather than hard-coded here
             stats = {Stats.ATTACK: 0, Stats.DEFENSE: 3, Stats.MAGIC: 0,\
@@ -348,13 +367,20 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
                 game.board.move_char(target_char, original_square, verbose=False)
                 target_char.ready = True
                 char.ready = False
+        '''
+        '''
+        if False:
+            pass
 
         else:
             game_copy = copy.deepcopy(game)
             new_char = game_copy.board.get_piece(char.get_square())
             skill = new_char.get_skill_by_id(move.action_id)
+            print(skill)
             game_copy.use_skill(new_char, move.target_square, skill, verbose=False)
             value = get_heuristic_board_value(game_copy, new_char, player_color, player_threat_board, enemy_threat_board)
+        '''
+        
 
     # If the value has not been calculated in the previous steps already
     if value is None:
@@ -363,7 +389,8 @@ def apply_candidate_move(game, char, move, player_color, player_threat_board, en
 
     # Move back to original square and reset temporary stats
     game.board.move_char(char, move.source_square, verbose=False)
-    reset_tmp_stats(game)
+    #reset_tmp_stats(game)
+    reset_game_copy(game)
     return value
 
 
@@ -390,22 +417,22 @@ def get_heuristic_board_value(game, moven_char, player_color, player_threat_boar
     nof_enemy_characters = len(enemy.get_characters())
 
     # Points for each character who is alive based on their current HP
-    value += ( 'Characters',     2*sum([ BASE_VALUES[char.type] * (1 + char.tmp_hp / char.get_maxhp()) for char in player.get_characters() if char.tmp_hp > 0]) )
-    value -= ( 'En. characters', 2*sum([ BASE_VALUES[char.type] * (1 + char.tmp_hp / char.get_maxhp()) for char in enemy .get_characters() if char.tmp_hp > 0]) )
+    value += ( 'Characters',     2*sum([ BASE_VALUES[char.type] * (1 + char.hp / char.get_maxhp()) for char in player.get_characters() if char.hp > 0]) )
+    value -= ( 'En. characters', 2*sum([ BASE_VALUES[char.type] * (1 + char.hp / char.get_maxhp()) for char in enemy .get_characters() if char.hp > 0]) )
 
     # Points for advantages
-    player_advantage    = statistics.mean([ ADVANTAGES[char.type][enemy_char.type] * (0.8 + 0.2*       char.tmp_hp /       char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if char.tmp_hp > 0])
-    enemy_advantage     = statistics.mean([ ADVANTAGES[enemy_char.type][char.type] * (0.8 + 0.2* enemy_char.tmp_hp / enemy_char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if enemy_char.tmp_hp > 0]) 
+    player_advantage    = statistics.mean([ ADVANTAGES[char.type][enemy_char.type] * (0.8 + 0.2*       char.hp /       char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if char.hp > 0])
+    enemy_advantage     = statistics.mean([ ADVANTAGES[enemy_char.type][char.type] * (0.8 + 0.2* enemy_char.hp / enemy_char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if enemy_char.hp > 0]) 
     
     value += ( 'PlAdv', player_advantage )
     value -= ( 'EnAdv', enemy_advantage )
 
     # Prefer positions where characters are close to each other
-    avedist_allies = statistics.mean([PREFER_ALLY_COMPANY[moven_char.type]*math.tanh( max(0, game.board.distmap.distance_between_characters(moven_char, other)-2) / (game.board.height+game.board.width) ) for other in player.get_characters() if other.tmp_hp > 0])
+    avedist_allies = statistics.mean([PREFER_ALLY_COMPANY[moven_char.type]*math.tanh( max(0, game.board.distmap.distance_between_characters(moven_char, other)-2) / (game.board.height+game.board.width) ) for other in player.get_characters() if other.hp > 0])
     value -= ('Allies close', 2*avedist_allies )
 
     # To avoid games where no player does anything, slightly favor positions where characters are closer to enemies
-    avedist_enemies = statistics.mean([ PREFER_ENEMY_COMPANY[moven_char.type]*math.tanh( max(0, game.board.distmap.distance_between_characters(moven_char, other)-4) / (game.board.height+game.board.width) ) for other in enemy.get_characters() if other.tmp_hp > 0])
+    avedist_enemies = statistics.mean([ PREFER_ENEMY_COMPANY[moven_char.type]*math.tanh( max(0, game.board.distmap.distance_between_characters(moven_char, other)-4) / (game.board.height+game.board.width) ) for other in enemy.get_characters() if other.hp > 0])
     value -= ('Enemies close', max(3,(player_advantage/nof_player_characters)/(enemy_advantage/nof_enemy_characters))*avedist_enemies )
 
     # Very slightly prefer positions where characters total stats are higher (mainly to support using raise range and such)
@@ -429,7 +456,7 @@ def get_heuristic_board_value(game, moven_char, player_color, player_threat_boar
 
         max_advantage    = max([ADVANTAGES[char.type][enemy_char.type] for enemy_char in dmg_enemies]) if len(dmg_enemies) > 0 else 0
         max_disadvantage = max([ADVANTAGES[enemy_char.type][char.type] for enemy_char in dmg_enemies]) if len(dmg_enemies) > 0 else 0
-        n_could_be_killed = len([enemy_char for enemy_char in dmg_enemies if enemy_char.tmp_hp < sum([val for key, val in get_probable_enemy_damage(game,player_threat_board, enemy_char, disregard_moven=True).items() ])]) if len(dmg_enemies) > 0 else 0
+        n_could_be_killed = len([enemy_char for enemy_char in dmg_enemies if enemy_char.hp < sum([val for key, val in get_probable_enemy_damage(game,player_threat_board, enemy_char, disregard_moven=True).items() ])]) if len(dmg_enemies) > 0 else 0
 
         fact = 1    # Base multiplier
 
@@ -439,10 +466,10 @@ def get_heuristic_board_value(game, moven_char, player_color, player_threat_boar
             fact = fact * ( len(prob_dmg_dict) - n_could_be_killed ) / len(prob_dmg_dict)
 
         # Very dangerous if enemy is expected to kill here
-        if prob_dmg >= char.tmp_hp:
+        if prob_dmg >= char.hp:
             danger_value += BASE_VALUES[char.type] * fact / nof_player_characters
         # Quite dangerous if the enemy can kill with a bit of luck
-        elif max_dmg >= char.tmp_hp:
+        elif max_dmg >= char.hp:
             danger_value += 0.8 * BASE_VALUES[char.type] * fact / nof_player_characters
         # Otherwise, add value based on the expected damage and multiplier
         else:
@@ -533,6 +560,7 @@ def init_tmp_stats(game):
     for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
         char.original_hp    = char.get_hp()
         char.original_stats = dict(char.stats)
+        char.original_skills = copy.deepcopy(char.get_full_skills())
         #char.original_range = char.range
 
 
@@ -546,7 +574,33 @@ def reset_tmp_stats(game):
     for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
         char.tmp_hp = char.original_hp
         char.stats  = dict(char.original_stats)
+        char.skills = list(char.original_skills)
         #char.range  = char.original_range
+
+
+def prepare_game_copy(game):
+    class TmpGameHandler:
+        def __init__(self, char):
+            self.char = char
+        def die_dummy(self, verbose=False):
+            if self.char.hp < 0:
+                self.char.hp = 0
+            self.char.alive = False
+            
+    for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
+        char.original_hp        = char.hp
+        char.original_skills    = list(char.get_full_skills())
+        char.original_ready     = char.ready
+        char.original_alive     = char.alive
+        tmp_handler = TmpGameHandler(char)
+        char.die = tmp_handler.die_dummy
+
+def reset_game_copy(game):
+    for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
+        char.hp        = char.original_hp
+        char.skills    = list(char.original_skills)
+        char.ready     = char.original_ready
+        char.alive     = char.original_alive
 
 
 def calculate_tmp_hp(char, tmp_hp_delta=0):
@@ -569,8 +623,8 @@ def get_winner(game):
     '''
     if game.get_winner() is not None:
         return game.get_winner()
-    n_blue_chars = len([char for char in game.get_blue_player().get_characters() if char.tmp_hp > 0])
-    n_red_chars  = len([char for char in game.get_red_player().get_characters()  if char.tmp_hp > 0])
+    n_blue_chars = len([char for char in game.get_blue_player().get_characters() if char.hp > 0])
+    n_red_chars  = len([char for char in game.get_red_player().get_characters()  if char.hp > 0])
     if n_blue_chars == 0:
         return PlayerColor.RED
     elif n_red_chars == 0:
