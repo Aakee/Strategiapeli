@@ -46,8 +46,8 @@ class Character:
         at the beginning of turn.
         '''
         self.stats = dict(self.init_stats)
-        self.stats[Stats.RANGE] = self.init_range
-        self.range = self.init_range
+        #self.stats[Stats.RANGE] = self.init_range
+        #self.range = self.init_range
     
     def get_stats(self):
         '''
@@ -55,12 +55,14 @@ class Character:
         '''
         stats = dict(self.stats)
         stat_enhanc = self.board.get_tile(self.get_square()).get_combat_bonuses()
-        stats[Stats.ATTACK] += stat_enhanc[Stats.ATTACK]
-        stats[Stats.DEFENSE] += stat_enhanc[Stats.DEFENSE]
-        stats[Stats.MAGIC] += stat_enhanc[Stats.MAGIC]
+        stats[Stats.ATTACK]     += stat_enhanc[Stats.ATTACK]
+        stats[Stats.DEFENSE]    += stat_enhanc[Stats.DEFENSE]
+        stats[Stats.MAGIC]      += stat_enhanc[Stats.MAGIC]
         stats[Stats.RESISTANCE] += stat_enhanc[Stats.RESISTANCE]
-        stats[Stats.SPEED] += stat_enhanc[Stats.SPEED]
-        stats[Stats.EVASION] += stat_enhanc[Stats.EVASION]
+        stats[Stats.SPEED]      += stat_enhanc[Stats.SPEED]
+        stats[Stats.EVASION]    += stat_enhanc[Stats.EVASION]
+        for skill in self.skills:
+            skill.get_stats(stats)
         return stats
     
     def modify_stats(self,stat_enhanc,range_enhac):
@@ -74,10 +76,26 @@ class Character:
         self.stats[Stats.SPEED] += stat_enhanc[Stats.SPEED]
         self.stats[Stats.EVASION] += stat_enhanc[Stats.EVASION]
         self.stats[Stats.RANGE] += range_enhac
-        self.range += range_enhac
+        #self.range += range_enhac
           
     def get_range(self):
-        return self.range
+        return self.stats[Stats.RANGE]
+    
+    def add_skill(self, new_skill):
+        # Possible old status with the same id
+        old_skills = [old for old in self.skills if old.type == new_skill.type]
+        if len(old_skills) > 0:
+            old_skill = old_skills[0]
+            if old_skill.max_uses - old_skill.use_count > new_skill.max_uses:
+                return 
+            self.delete_skill(new_skill.type)
+        self.skills.append(new_skill)
+
+    def delete_skill(self, skill_type):
+        self.skills = [sk for sk in self.skills if sk.type != skill_type]
+        
+    def has_skill(self, skill_type):
+        return len([sk for sk in self.skills if sk.type == skill_type]) > 0
     
     def get_legal_squares(self):
         '''
@@ -126,6 +144,8 @@ class Character:
         return self.maxhp
     
     def add_hp(self, amount, verbose=True):
+        amount = max(amount, 0)
+        amount = min(amount, self.maxhp-self.hp)
         self.hp += amount
         if verbose:
             print("{} paransi {} hp vahinkoa.".format(self.get_name(),amount))
@@ -133,6 +153,8 @@ class Character:
             self.hp = self.maxhp
             
     def remove_hp(self,amount, verbose=True):
+        amount = max(amount, 0)
+        amount = min(amount, self.maxhp)
         self.hp -= amount
         if verbose:
             print("{} otti {} hp vahinkoa.".format(self.get_name(),amount))
@@ -370,13 +392,14 @@ class Character:
         '''
         Resets character's stats every turn (self.ready, etc)
         '''
-        activating_skills = skill.Skill.passive_beginning
         self.ready = False
         self.init_square = None
         self.reset_stats()
+
         for sk in self.skills:
-            if sk.get_type() in activating_skills:
-                sk.use()
+            sk.new_turn()
+            if sk.has_ended:
+                self.delete_skill(sk.type)
 
     def __str__(self):
         '''
@@ -444,9 +467,8 @@ class TestChar(Character):
         self.stats[Stats.RESISTANCE] = 15
         self.stats[Stats.SPEED] = 15
         self.stats[Stats.EVASION] = 10
+        self.stats[Stats.RANGE] = 6
         self.init_stats = dict(self.stats)
-        self.range = 6
-        self.init_range = self.range
         self.skills = [skill.Ghost(self), skill.RaiseDef(self)]
             
         self.attacks.append(attack.Swordstrike(self))
@@ -470,9 +492,8 @@ class Knight(Character):
         self.stats[Stats.RESISTANCE] = 4
         self.stats[Stats.SPEED] = 17
         self.stats[Stats.EVASION] = 0
-        self.range = 3
+        self.stats[Stats.RANGE] = 3
         self.init_stats = dict(self.stats)
-        self.init_range = self.range
         self.skills = [skill.RaiseDef(self), skill.Bodyguard(self)]
             
         self.attacks.append(attack.Swordstrike(self))
@@ -495,9 +516,8 @@ class Archer(Character):
         self.stats[Stats.RESISTANCE] = 7
         self.stats[Stats.SPEED] = 20
         self.stats[Stats.EVASION] = 5
-        self.range = 4
+        self.stats[Stats.RANGE] = 4
         self.init_stats = dict(self.stats)
-        self.init_range = self.range
         self.skills = [skill.Sniper(self)]
 
         self.attacks.append(attack.Bow(self))
@@ -521,9 +541,8 @@ class Mage(Character):
         self.stats[Stats.RESISTANCE] = 7
         self.stats[Stats.SPEED] = 20
         self.stats[Stats.EVASION] = 5
-        self.range = 3
+        self.stats[Stats.RANGE] = 3
         self.init_stats = dict(self.stats)
-        self.init_range = self.range
         self.skills = [skill.Camouflage(self)]
             
         self.attacks.append(attack.Fire(self))
@@ -546,9 +565,8 @@ class Cleric(Character):
         self.stats[Stats.RESISTANCE] = 3
         self.stats[Stats.SPEED] = 15
         self.stats[Stats.EVASION] = 5
-        self.range = 3
+        self.stats[Stats.RANGE] = 3
         self.init_stats = dict(self.stats)
-        self.init_range = self.range
         self.skills = [skill.Heal(self), skill.Camouflage(self), skill.Rest(self), skill.RaiseRng(self)]
             
         self.attacks.append(attack.Wind(self))
@@ -571,9 +589,8 @@ class Assassin(Character):
         self.stats[Stats.RESISTANCE] = 7
         self.stats[Stats.SPEED] = 30
         self.stats[Stats.EVASION] = 15
-        self.range = 4
+        self.stats[Stats.RANGE] = 4
         self.init_stats = dict(self.stats)
-        self.init_range = self.range
         self.skills = [skill.Camouflage(self), skill.Sneak(self)]
             
         self.attacks.append(attack.Dagger(self))
@@ -596,9 +613,8 @@ class Valkyrie(Character):
         self.stats[Stats.RESISTANCE] = 10
         self.stats[Stats.SPEED] = 15
         self.stats[Stats.EVASION] = 5
-        self.range = 5
+        self.stats[Stats.RANGE] = 5
         self.init_stats = dict(self.stats)
-        self.init_range = self.range
         self.skills = [skill.Levitate(self), skill.Rest(self), skill.Wish(self)]
             
         self.attacks.append(attack.Lance(self))

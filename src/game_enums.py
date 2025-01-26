@@ -74,6 +74,14 @@ class SkillType:
     RAISEDEF    = 33   # Character raises defensive stats for nearby allies until start of next turn
     RAISERNG    = 34   # Character raises range for nearby allies until start of next turn
     WISH        = 39   # Another character can move second time
+
+    # Positive statuses
+    FORTIFY     = 51
+    SWIFT       = 52
+
+    # Negative statuses
+
+
     
 class AttackType:
     '''

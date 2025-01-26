@@ -533,7 +533,7 @@ def init_tmp_stats(game):
     for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
         char.original_hp    = char.get_hp()
         char.original_stats = dict(char.stats)
-        char.original_range = char.range
+        #char.original_range = char.range
 
 
 def reset_tmp_stats(game):
@@ -546,7 +546,7 @@ def reset_tmp_stats(game):
     for char in game.get_blue_player().get_characters() + game.get_red_player().get_characters():
         char.tmp_hp = char.original_hp
         char.stats  = dict(char.original_stats)
-        char.range  = char.original_range
+        #char.range  = char.original_range
 
 
 def calculate_tmp_hp(char, tmp_hp_delta=0):

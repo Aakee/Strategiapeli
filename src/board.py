@@ -2,6 +2,7 @@ from game_errors import IllegalMoveException
 import threading
 import queue
 import ai.distance
+from game_enums import Stats
 
 class Board:
     
@@ -143,7 +144,7 @@ class Board:
             return f"{coord[0]},{coord[1]}"
         
         legal_squares   = []
-        init_range      = char.get_range()
+        init_range      = char.get_stats()[Stats.RANGE]
         
         # Check if the character can stay on the very first square
         can_stay, _     = self.get_tile(init_square).pass_by(char,init_range)

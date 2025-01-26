@@ -181,7 +181,7 @@ class CharacterInfo(QWidget):
         resistance = str(stats[Stats.RESISTANCE])
         speed = str(stats[Stats.SPEED])
         evasion = str(stats[Stats.EVASION])
-        range = str(self.char.get_range())
+        range = str(stats[Stats.RANGE])
         string = "Stats:\nAtt: " + attack + "\nDef: " + defense +"\nMag: " + magic \
         + "\nRes: " + resistance + "\nSpd: " + speed + "\nEva: " + evasion + "\nRng: " + range
         label.setText(string)

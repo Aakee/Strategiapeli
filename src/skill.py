@@ -31,18 +31,25 @@ class Skill:
     
     # Passive skills which activates at the beginning of each turn
     passive_beginning = [SkillType.REST]
+
+    positive_statuses = []
+    negative_statuses = []
     
     
     def __init__(self,char):
         self.name = ""
         self.flavor = ""
         self.type = 0
-        self.affect_all = False # Determines if skill affects all characters in range (True) or only one (False)
-        self.target = True # False if doesn't need a target, True if it does
-        self.target_enemy = False # True if targets only enemies, False if allies
+        self.affect_all = False     # Determines if skill affects all characters in range (True) or only one (False)
+        self.target = True          # False if doesn't need a target, True if it does
+        self.target_enemy = False   # True if targets only enemies, False if allies
+        self.positive = True        # True if positive for the user/holder, False if harmful
         self.char = char
         self.range = None
-        
+        self.max_uses = 0           # Zero: No limits. Over zero: How many turns does this skill (status) carry over. Under zero: How many individual uses does this skill (status) have.  
+        self.use_count = 0
+        self.has_ended = False
+
     def get_name(self):
         return self.name
     
@@ -54,6 +61,9 @@ class Skill:
     
     def get_action_type(self):
         return "s"
+    
+    def get_value(self):
+        return 0
     
     def get_range(self):
         return self.range
@@ -70,8 +80,27 @@ class Skill:
     def get_value(self):    # For ai to determine how clever it is to use skill
         return 0
     
-    def use(**kwargs):
+    def use(self,**kwargs):
         return
+    
+    def increase_use_count(self,delta):
+        if self.max_uses == 0:
+            return
+        self.use_count += delta
+        if self.use_count >= abs(self.max_uses):
+            self.has_ended = True
+    
+    def new_turn(self):
+        return
+    
+    def get_stats(self, stats):
+        return
+    
+    def define_accuracy(self,accuracy,attacking,defending):
+        return accuracy
+    
+    def define_damage(self,damage,attacking,defending):
+        return damage
         
         
 #from action import ConfirmSkill        
@@ -203,32 +232,11 @@ class RaiseDef(Skill):
             if char != None:
                 owner = char.get_owner()
                 if owner == self.char.get_owner():
-                    char.modify_stats(stats,0)
+                    char.add_skill(Fortify(char))
                     
         self.char.set_ready()
         if verbose:
             print("{} kaytti kykya Raise Defense! Lahella olevien puolulaisten puolustukset nousivat!".format(self.char.get_name()))
-
-                    
-    def get_value(self,coordinates):
-        all_squares = self.char.get_game().get_board().get_tiles_in_range(self.char.get_square(),self.range)
-        chars = []
-        
-        for square in all_squares:
-            char = self.char.get_game().get_board().get_piece(square)
-            if char != None:
-                owner = char.get_owner()
-                if owner == self.char.get_owner:
-                    chars.append(char)
-        
-        value = 0
-        for char in chars:
-            value += char.calculate_enemy_threat(char.get_square())
-            
-        value = value * 5
-        
-        return value
-    
     
     
 class RaiseRng(Skill):
@@ -238,7 +246,7 @@ class RaiseRng(Skill):
     def __init__(self,char):
         super().__init__(char)
         self.name = "Raise range"
-        self.flavor = "Raises range by 1 for allies in range 3 until end of turn."
+        self.flavor = "Gives Swift to nearby allies."
         self.type = SkillType.RAISERNG
         #self.char = char
         self.range = 3
@@ -247,8 +255,6 @@ class RaiseRng(Skill):
         self.target_enemy = False
         
     def use(self,coordinates, verbose=True):
-        stats = {Stats.ATTACK: 0, Stats.DEFENSE: 0, Stats.MAGIC: 0,\
-                       Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0}
         all_squares = self.char.get_game().get_board().get_tiles_in_range(self.char.get_square(),self.range)
 
         if coordinates not in all_squares:
@@ -265,35 +271,13 @@ class RaiseRng(Skill):
             if char != None:
                 owner = char.get_owner()
                 if owner == self.char.get_owner():
-                    char.modify_stats(stats,1)
+                    char.add_skill(Swift(char))
                     
         self.char.set_ready()
         if verbose:
             print("{} kaytti kykya Raise Range! Lahella olevien puolulaisten askeleet kasvoivat yhdella!".format(self.char.get_name()))
 
                     
-    def get_value(self,coordinates):
-        
-        all_squares = self.char.get_game().get_board().get_tiles_in_range(self.char.get_square(),self.range)
-        chars = []
-
-        for square in all_squares:
-            char = self.char.get_game().get_board().get_piece(square)
-            if char != None:
-                owner = char.get_owner()
-                if owner == self.char.get_owner():
-                    chars.append(char)
-                    
-        value = -5
-        for char in chars:
-            if not char.is_ready():
-                value += 5
-            
-        value = value * 2
-
-        return value
-    
-    
 class Camouflage(Skill):
     '''
     Raises evasion against archers.
@@ -334,7 +318,7 @@ class Rest(Skill):
         self.target = False
         self.gain = 2   # How much is regained each turn
         
-    def use(self, verbose=True):
+    def new_turn(self, verbose=True):
         if self.char.get_hp() < self.char.get_maxhp(): # If hp is not already full
             if verbose:
                 print("{} kaytti kykya Rest!".format(self.char.get_name()))
@@ -471,20 +455,40 @@ class Wish(Skill):
         if verbose:
             print("{} used Wish on {}!".format(self.char.get_name(), target.get_name()))
         
-    def get_value(self,coordinates):
-        target = self.char.get_game().get_board().get_piece(coordinates)
-        if target == None:
-            return 0
-        if target.get_owner() != self.char.get_owner():
-            return 0
-        if not target.is_ready():
-            return 0
-        skills = target.get_skills()
-        if SkillType.WISH in skills:
-            return 0
-        '''
-        line = target.calculate_best_move()
-        value = line[3]
-        return value
-        '''
-        return 1000
+
+class Fortify(Skill):
+    '''
+    Enhances character's defensive stats.
+    '''
+    def __init__(self, char) -> None:
+        super().__init__(char)
+        self.name = "Fortify"
+        self.flavor = "Enhances defense and resistance."
+        self.type = SkillType.FORTIFY
+        self.max_uses = 1
+
+    def new_turn(self):
+        self.increase_use_count(1)
+        print(self.max_uses, self.use_count, self.has_ended)
+
+    def get_stats(self, orig_stats):
+        orig_stats[Stats.DEFENSE] += 3
+        orig_stats[Stats.RESISTANCE] += 3
+
+
+class Swift(Skill):
+    '''
+    Enhances character's movement range.
+    '''
+    def __init__(self, char) -> None:
+        super().__init__(char)
+        self.name = "Swift"
+        self.flavor = "Enhances movement range."
+        self.type = SkillType.SWIFT
+        self.max_uses = 1
+
+    def new_turn(self):
+        self.increase_use_count(1)
+
+    def get_stats(self, orig_stats):
+        orig_stats[Stats.RANGE] += 1
