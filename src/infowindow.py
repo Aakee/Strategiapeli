@@ -71,7 +71,6 @@ class Infowindow(QWidget):
             try:
                 popup.refresh()
             except TypeError as err:
-                print(err)
                 popup.close()
         self.show()
             
