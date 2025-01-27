@@ -514,7 +514,5 @@ class Inspired(Skill):
 
     def get_stats(self, orig_stats):
         orig_stats[Stats.ATTACK]        += 1
-        orig_stats[Stats.DEFENSE]       += 1
         orig_stats[Stats.MAGIC]         += 1
-        orig_stats[Stats.RESISTANCE]    += 1
     
