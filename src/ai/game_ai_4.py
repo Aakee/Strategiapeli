@@ -340,8 +340,8 @@ def get_heuristic_board_value(game, moven_char, player_color, player_threat_boar
     value -= ( 'En. characters', 2*sum([ BASE_VALUES[char.type] * (1 + char.hp / char.get_maxhp()) for char in enemy .get_characters() if char.hp > 0]) )
 
     # Points for advantages
-    player_advantage    = statistics.mean([ ADVANTAGES[char.type][enemy_char.type] * (0.8 + 0.2*       char.hp /       char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if char.hp > 0])
-    enemy_advantage     = statistics.mean([ ADVANTAGES[enemy_char.type][char.type] * (0.8 + 0.2* enemy_char.hp / enemy_char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if enemy_char.hp > 0]) 
+    player_advantage    = statistics.mean([ ADVANTAGES[char.type][enemy_char.type] * (0.8 + 0.2*       char.hp /       char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if char.hp > 0 and enemy_char.hp > 0])
+    enemy_advantage     = statistics.mean([ ADVANTAGES[enemy_char.type][char.type] * (0.8 + 0.2* enemy_char.hp / enemy_char.get_maxhp()) for char in player.get_characters() for enemy_char in enemy.get_characters() if char.hp > 0 and enemy_char.hp > 0]) 
     
     value += ( 'PlAdv', player_advantage )
     value -= ( 'EnAdv', enemy_advantage )
