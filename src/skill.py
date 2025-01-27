@@ -43,7 +43,7 @@ class Skill:
         self.affect_all = False     # Determines if skill affects all characters in range (True) or only one (False)
         self.target = True          # False if doesn't need a target, True if it does
         self.target_enemy = False   # True if targets only enemies, False if allies
-        self.positive = True        # True if positive for the user/holder, False if harmful
+        self.positive = None        # True if positive for the user/holder, False if harmful, None if neutral
         self.char = char
         self.range = None
         self.max_uses = 0           # Zero: No limits. Over zero: How many turns does this skill (status) carry over. Under zero: How many individual uses does this skill (status) have.  
@@ -467,6 +467,7 @@ class Fortify(Skill):
         self.name = "Fortify"
         self.flavor = "Enhances defense and resistance."
         self.type = SkillType.FORTIFY
+        self.positive = True
         self.max_uses = 1
 
     def new_turn(self):
@@ -486,6 +487,7 @@ class Swift(Skill):
         self.name = "Swift"
         self.flavor = "Enhances movement range."
         self.type = SkillType.SWIFT
+        self.positive = True
         self.max_uses = 1
 
     def new_turn(self):
@@ -504,6 +506,7 @@ class Inspired(Skill):
         self.name = "Inspired"
         self.flavor = "Character has enhanced stats due to Wish. Cannot be the target of another Wish."
         self.type = SkillType.INSPIRED
+        self.positive = True
         self.max_uses = 1
 
     def new_turn(self):

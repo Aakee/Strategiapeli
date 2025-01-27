@@ -31,6 +31,7 @@ class Character:
         self.hp = 0
         self.stats = {Stats.ATTACK: 0, Stats.DEFENSE: 0, Stats.MAGIC: 0,\
                        Stats.RESISTANCE: 0, Stats.SPEED: 0, Stats.EVASION: 0, Stats.RANGE: 0}
+        self.init_stats = dict(self.stats)
         self.attacks = []
         self.skills = []
         self.legal_squares = None
@@ -38,7 +39,7 @@ class Character:
         self.game.get_player(self.color).add_character(self)
         
     def get_initial_stats(self):
-        return self.stats
+        return self.init_stats
     
     def reset_stats(self):
         '''
